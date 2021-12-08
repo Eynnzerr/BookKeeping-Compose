@@ -3,6 +3,8 @@ package com.eynnzerr.cpbookkeeping_compose.data
 import android.os.Build
 import android.os.Parcelable
 import androidx.annotation.RequiresApi
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.android.parcel.Parcelize
 import java.time.LocalDate
 
@@ -15,7 +17,9 @@ import java.time.LocalDate
  * category: expenses or revenue
  */
 @Parcelize
+@Entity(tableName = "bills")
 data class Bill(
+    @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     var type: Int = 0,
     var amount: Float = 0f,

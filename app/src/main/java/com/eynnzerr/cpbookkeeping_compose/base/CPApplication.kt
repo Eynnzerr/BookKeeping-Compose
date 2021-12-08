@@ -1,7 +1,20 @@
 package com.eynnzerr.cpbookkeeping_compose.base
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class CPApplication: Application() {
-    //TODO 可以在这里实现全局的仓库注入。但感觉可以用hilt+viewmodel更好。。
+    override fun onCreate() {
+        super.onCreate()
+        context = applicationContext
+    }
+
+    //since this is an application context, which will always exist till app finishes, it won't cause memory leak literally.
+    companion object {
+        @SuppressLint("StaticFieldLeak")
+        lateinit var context: Context
+    }
 }
