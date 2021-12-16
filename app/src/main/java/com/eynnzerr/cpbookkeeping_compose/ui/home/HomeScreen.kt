@@ -17,13 +17,21 @@ import androidx.compose.ui.unit.sp
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.data.fakeList
 import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
+import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(listState: LazyListState) {
+fun HomeScreen(uiState: HomeUiState, listState: LazyListState) {
     Column() {
-        BalanceSurface(expenses = 100.00f, revenue = 50.00f, budget = 200.00f)
+        BalanceSurface(
+            expenses = uiState.homeData.monthlyExpense,
+            revenue = uiState.homeData.monthlyRevenue,
+            budget = uiState.homeData.budget
+        )
         Spacer(modifier = Modifier.padding(20.dp))
-        BalanceToday(expenses_today = 56.50f, revenue_today = 40.00f)
+        BalanceToday(
+            expenses_today = uiState.homeData.dailyExpense,
+            revenue_today = uiState.homeData.dailyRevenue
+        )
         BillList(bills = fakeList, listState)
     }
 }
