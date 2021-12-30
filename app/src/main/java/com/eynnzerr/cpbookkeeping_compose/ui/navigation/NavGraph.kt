@@ -5,6 +5,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph
@@ -14,6 +16,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.eynnzerr.cpbookkeeping_compose.ui.home.HomeScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.home.HomeViewModel
+import com.eynnzerr.cpbookkeeping_compose.ui.new.NewScreen
+import com.eynnzerr.cpbookkeeping_compose.ui.new.rememberTabContent
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingScreen
 
@@ -32,5 +36,16 @@ fun NavGraph(
         }
         composable(Destinations.RECORD_ROUTE){ RecordScreen() }
         composable(Destinations.SETTING_ROUTE){ SettingScreen() }
+        composable(Destinations.NEW_ROUTE){
+            val tabContent = rememberTabContent()
+            val (currentSection, updateSection) = rememberSaveable {
+                mutableStateOf(tabContent.first().section)
+            }
+            NewScreen(
+                tabContent = tabContent,
+                currentSection = currentSection,
+                onTabChange = updateSection
+            )
+        }
     }
 }

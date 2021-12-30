@@ -8,4 +8,10 @@
     <string name="visulized_analysis">可视化分析</string>
     <string name="daily_expenses">今日支出</string>
     <string name="daily_revenue">今日收入</string>
+    <string name="x">****</string>
+    <string name="cancel_new">Cancel</string>
+
+    <!--NewScreen.kt-->
+    <string name="section_new_revenue">收入</string>
+    <string name="section_new_expense">支出</string>
 </resources>

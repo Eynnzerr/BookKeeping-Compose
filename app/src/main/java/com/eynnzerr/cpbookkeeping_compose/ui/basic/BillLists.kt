@@ -52,7 +52,7 @@ fun BillCard(bill: Bill) {
         elevation = 5.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(all = 5.dp)
+            .padding(horizontal = 5.dp, vertical = 3.dp)
             .clickable {
                 Log.d("BillLists", "BillCard: U clicked me!")
             }
@@ -129,13 +129,12 @@ fun LazyListState.isScrollingUp(): Boolean {
     }.value
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(
     name = "BillCard",
     showBackground = true
 )
 @Composable
-fun PreviewBillList() {
-    //BillList(bills = fakeList)
+fun PreviewBillCard() {
+    BillCard(bill = fakeList[0])
 }

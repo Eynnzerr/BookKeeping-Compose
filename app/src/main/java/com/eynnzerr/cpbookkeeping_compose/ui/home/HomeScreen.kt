@@ -38,6 +38,7 @@ fun HomeScreen(uiState: HomeUiState, listState: LazyListState) {
 
 @Composable
 fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
+    val x = "****"
     var eye_closed by remember{ mutableStateOf(false) }
     Surface(
         shape = RoundedCornerShape(10.dp),
@@ -60,7 +61,11 @@ fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
                     .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                RMBMount(money = expenses, hint = stringResource(id = R.string.no_expenses))
+                RMBMount(
+                    money = expenses,
+                    hint = stringResource(id = R.string.no_expenses),
+                    isHidden = eye_closed
+                )
                 Spacer(modifier = Modifier.padding(horizontal = 100.dp))
                 IconButton(
                     onClick = { eye_closed = !eye_closed },
@@ -90,9 +95,16 @@ fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
                 modifier = Modifier
                     .padding(start = 8.dp, end = 8.dp),
             ) {
-                RMBMount(money = revenue, hint = stringResource(id = R.string.no_revenue))
+                RMBMount(
+                    money = revenue,
+                    hint = stringResource(id = R.string.no_revenue),
+                    isHidden = eye_closed
+                )
                 Spacer(modifier = Modifier.padding(horizontal = 80.dp))
-                RMBMount(money = budget)
+                RMBMount(
+                    money = budget,
+                    isHidden = eye_closed
+                )
             }
             Button(
                 onClick = { /*TODO*/ },
@@ -121,13 +133,20 @@ fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
 }
 
 @Composable
-fun RMBMount(money: Float, hint: String = "¥0.00") {
-    if(money == 0f) {
+fun RMBMount(money: Float, hint: String = "¥0.00", isHidden: Boolean) {
+    if(isHidden) {
+        Text(
+            text = stringResource(id = R.string.x),
+            style = MaterialTheme.typography.h5
+        )
+    }
+    else if(money == 0f) {
         Text(
             text = hint,
             style = MaterialTheme.typography.h5
         )
-    } else {
+    }
+    else {
         val amount = "¥" + String.format("%.2f", money)
         Text(
             text = amount,

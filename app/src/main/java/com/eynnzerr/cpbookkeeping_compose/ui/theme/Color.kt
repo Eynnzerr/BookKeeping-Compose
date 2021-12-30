@@ -9,5 +9,3 @@ val Teal200 = Color(0xFF03DAC5)
 
 val Blue_Sky = Color(0xFF00BFFF)
 val Blue_Dogger = Color(0xFF1E90FF)
-//<color name="deep_sky_blue">#00BFFF</color>
-//<color name="dodger_blue">#1E90FF</color>

@@ -7,6 +7,11 @@ object Destinations {
     const val HOME_ROUTE = "home"
     const val RECORD_ROUTE = "record"
     const val SETTING_ROUTE = "setting"
+    const val NEW_ROUTE = "new"
+}
+
+object ScreenFlag {
+
 }
 
 class NavActions(navController: NavController) {
@@ -40,5 +45,15 @@ class NavActions(navController: NavController) {
             launchSingleTop = true
             restoreState = true
         }
+    }
+}
+
+fun NavController.navigateTo(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }

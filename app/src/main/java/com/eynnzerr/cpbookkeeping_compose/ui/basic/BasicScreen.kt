@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,53 +25,57 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.model.Screen
+import com.eynnzerr.cpbookkeeping_compose.ui.navigation.Destinations
 import com.eynnzerr.cpbookkeeping_compose.ui.navigation.NavGraph
+import com.eynnzerr.cpbookkeeping_compose.ui.navigation.navigateTo
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_Sky
 import kotlin.math.roundToInt
 
+private const val TAG = "BasicScreen"
 
 @ExperimentalAnimationApi
 @Composable
 fun BasicScreen(
     navController: NavController
 ) {
+    //items for BottomNavigation. Changes to the size of list is not recommended.
     val items = listOf(Screen.Home, Screen.Record, Screen.Setting)
     val listState = rememberLazyListState()
+    val currentScreen = navController.currentScreen()
+    Log.d(TAG, "BasicScreen: currentScreen is:${currentScreen.value}")
     Scaffold(
         topBar = {
-            TopAppBar(
-                elevation = 10.dp
-            ) {
-                  Text(
-                      text = stringResource(id = R.string.app_name),
-                      style = MaterialTheme.typography.h5
-                  )
-                  //how to make this icon align to the end of appbar?
-                  Icon(
-                      modifier = Modifier
-                          .clickable {  },
-                      imageVector = Icons.Filled.Search,
-                      contentDescription = null
-                  )
-            }
+            //Change according to currentScreen in composable.
+            CPTopBar(currentScreen)
         },
         floatingActionButton = {
-            DraggableFloatingButton(
-                onClick = {
-                    Log.d("BasicScreen", "BasicScreen: hi FAB")
-                }
-            )
+            //only show up when it's HOME screen.
+            if(currentScreen.value == Destinations.HOME_ROUTE) {
+                DraggableFloatingButton(
+                    onClick = {
+                        navController.navigateTo(Destinations.NEW_ROUTE)
+                    }
+                )
+            } else Unit
         },
         bottomBar = {
+            //only show up when it's HOME, RECORD, SETTING screens.
             AnimatedVisibility(listState.isScrollingUp()) {
-                FlutterNavigation(navController = navController, items)
+                when(currentScreen.value) {
+                    Destinations.HOME_ROUTE,
+                    Destinations.RECORD_ROUTE,
+                    Destinations.SETTING_ROUTE -> FlutterNavigation(navController = navController, items)
+                    else -> Unit
+                }
             }
         }
     ) {
@@ -78,6 +83,55 @@ fun BasicScreen(
             navController = navController as NavHostController,
             listState = listState
         )
+    }
+}
+
+/**
+ * Change topBar according to different screens.
+ */
+@Composable
+private fun CPTopBar(currentScreen: State<String>) {
+    when (currentScreen.value) {
+        Destinations.HOME_ROUTE -> TopAppBar(
+            title = {
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    style = MaterialTheme.typography.h5,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Filled.More,
+                        contentDescription = null
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = { /*TODO open search*/ }) {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+        Destinations.NEW_ROUTE -> TopAppBar(
+            title = {
+                Text(text = "test")
+            },
+            navigationIcon = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+        else -> Unit
     }
 }
 
@@ -210,13 +264,7 @@ fun FlutterNavigation(navController: NavController, items: List<Screen>){
                         .clickable {
                             animalBoolean.value = !animalBoolean.value
                             animalCenterIndex.value = index
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navController.navigateTo(screen.route)
                         }
                 )
             }
@@ -243,5 +291,25 @@ fun Modifier.modifier(
             .width(25.dp)
             .height(25.dp)
     }
+}
+
+//Add flag for screens to distinguish if it has unique topBar or bottomBar
+@Composable
+private fun NavController.currentScreen(): State<String> {
+    val currentScreen = remember { mutableStateOf(Destinations.HOME_ROUTE)}
+    DisposableEffect(key1 = this) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            when {
+                destination.hierarchy.any { it.route == Destinations.NEW_ROUTE } -> {
+                    currentScreen.value = Destinations.NEW_ROUTE
+                } else -> currentScreen.value = Destinations.HOME_ROUTE
+            }
+        }
+        addOnDestinationChangedListener(listener)
+        onDispose {
+            removeOnDestinationChangedListener(listener)
+        }
+    }
+    return currentScreen
 }
 
