@@ -14,4 +14,8 @@
     <!--NewScreen.kt-->
     <string name="section_new_revenue">收入</string>
     <string name="section_new_expense">支出</string>
+    <string name="add_remark">添加备注</string>
+    <string name="btn_confirm">确定</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_reset">清零</string>
 </resources>
