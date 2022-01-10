@@ -4,14 +4,15 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.ContentAlpha.medium
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Close
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
+import com.eynnzerr.cpbookkeeping_compose.data.fakeList
+import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillCard
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_2
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -66,38 +69,45 @@ class TabContent(val section: Sections, val content: @Composable () -> Unit)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NewScreen(
+    scaffoldState: BottomSheetScaffoldState,
+    scope: CoroutineScope,
+    remark: MutableState<String>,
     tabContent: List<TabContent>,
     currentSection: Sections,
     onTabChange: (Sections) -> Unit
 ) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
-    val remark = remember{ mutableStateOf("") }
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
+        sheetPeekHeight = 0.dp,
         sheetContent = {
             TextField(
                 value = remark.value,
                 onValueChange = { remark.value = it },
                 label = { Text(text = stringResource(id = R.string.add_remark)) },
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent
+                    backgroundColor = Color.Transparent,
+                    disabledTextColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
                 )
             )
             Row(
-                modifier = Modifier.padding(top = 30.dp),
+                modifier = Modifier
+                    .padding(top = 30.dp)
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     shape = RoundedCornerShape(size = 5.dp),
                     onClick = {
                     scope.launch {
-                        remark.value = ""
+                        remark.value = "添加备注"
                         scaffoldState.bottomSheetState.collapse()
                     }
                 }) {
                     Icon(
-                        imageVector = Icons.Filled.Done,
+                        imageVector = Icons.Filled.Close,
                         contentDescription = null,
                         modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
@@ -112,7 +122,7 @@ fun NewScreen(
                     }
                 }) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = Icons.Filled.Done,
                         contentDescription = null,
                         modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
@@ -127,7 +137,6 @@ fun NewScreen(
             currentSection = currentSection,
             updateSection = onTabChange,
             tabContent = tabContent,
-            scaffoldState = scaffoldState,
             modifier = screenModifier
         )
     }
@@ -136,19 +145,31 @@ fun NewScreen(
 /**
  * Remembers the content for each tab on the Interests screen
  */
+@RequiresApi(Build.VERSION_CODES.O)
+@ExperimentalMaterialApi
 @Composable
-fun rememberTabContent(): List<TabContent> {
+fun rememberTabContent(
+    scaffoldState: BottomSheetScaffoldState,
+    scope: CoroutineScope,
+    remark: MutableState<String>
+): List<TabContent> {
     // Describe the screen sections here
     // Pass them to the stateless NewScreen using a tabContent.
     val expenseSection = TabContent(Sections.NewExpense) {
         TabWithSections(
-            category = -1
+            category = -1,
+            scaffoldState = scaffoldState,
+            scope = scope,
+            remark = remark
         )
     }
 
     val revenueSection = TabContent(Sections.NewRevenue) {
         TabWithSections(
-            category = 1
+            category = 1,
+            scaffoldState = scaffoldState,
+            scope = scope,
+            remark = remark
         )
     }
 
@@ -167,7 +188,6 @@ private fun NewScreenContent(
     currentSection: Sections,
     updateSection: (Sections) -> Unit,
     tabContent: List<TabContent>,
-    scaffoldState: BottomSheetScaffoldState,
     modifier: Modifier = Modifier
 ) {
     val selectedTabIndex = tabContent.indexOfFirst { it.section == currentSection }
@@ -228,21 +248,36 @@ private fun NewTabRowContent(
 }
 
 /**
- * Display content for creating new bill
+ * Display content for creating new bill, composed of TypeSelections and Calculator with SpaceBetween Column.
  */
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun TabWithSections(category: Int) {
-    val text = if(category == -1) "expense" else "revenue"
-    Text(text = text)
+private fun TabWithSections(
+    category: Int,
+    remark: MutableState<String>,
+    scaffoldState: BottomSheetScaffoldState,
+    scope: CoroutineScope
+) {
+    val amount = remember { mutableStateOf("¥0")}
+    val amountBuilder by remember { mutableStateOf(StringBuilder("¥0")) }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        TypeSelections(category = category, bills = fakeList, amount = amount.value)
+        Calculator(amount = amount,amountBuilder = amountBuilder, remark = remark, scaffoldState = scaffoldState, scope = scope)
+    }
 }
 
 /**
  * composable for selecting specific type of bill
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TypeSelections(category: Int, bills: List<Bill>, amount: String) {
     val tintColor = if(category == -1) Color.Red else Color.Blue
-    val selectedIndex by remember { mutableStateOf(0) }
+    val selectedIndex = remember { mutableStateOf(0) }
     Surface(
         elevation = 10.dp,
         modifier = Modifier.fillMaxWidth()
@@ -251,19 +286,24 @@ private fun TypeSelections(category: Int, bills: List<Bill>, amount: String) {
             modifier = Modifier.padding(5.dp)
         ) {
             Row(
-                modifier = Modifier.padding(all = 5.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .padding(all = 5.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    painter = painterResource(id = bills[selectedIndex].type),
-                    contentDescription = null,
-                    tint = tintColor
-                )
-                Spacer(modifier = Modifier.padding(horizontal = 5.dp))//spacer + padding 等价于原先的margin
-                Text(
-                    text = billTypes[bills[selectedIndex].type]!!,
-                    style = MaterialTheme.typography.body2
-                )
+                Row {
+                    Icon(
+                        painter = painterResource(id = bills[selectedIndex.value].type),
+                        contentDescription = null,
+                        tint = tintColor,
+                        modifier = Modifier.padding(end = 5.dp)
+                    )
+                    Text(
+                        text = billTypes[bills[selectedIndex.value].type]!!,
+                        style = MaterialTheme.typography.body2
+                    )
+                }
                 Text(
                     text = amount,
                     style = MaterialTheme.typography.body2,
@@ -274,32 +314,51 @@ private fun TypeSelections(category: Int, bills: List<Bill>, amount: String) {
                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f)
             )
             //TODO 实现一个横向可滑动的双行列表???
+            LazyRow(){
+                itemsIndexed(bills) { index, bill ->
+                    TypeListItem(
+                        resId = bill.type,
+                        typeName = billTypes[bill.type]!!,
+                        color = tintColor
+                    ) {
+                        selectedIndex.value = index
+                        Log.d("TypeSelections", "selectedIndex: $index")
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun TypeListItem(resId: Int, typeName: String) {
-    val interactionState = remember { MutableInteractionSource() }
-    val tintColor = when {
-        interactionState.collectIsPressedAsState().value -> Color.Red
-        else -> Color.Gray
-    }
-    Column {
+private fun TypeListItem(resId: Int, typeName: String, color: Color, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(8.dp)
+            .clickable(onClick = onClick)
+    ) {
         // a icon and a text
+        Icon(
+            painter = painterResource(id = resId),
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(48.dp)
+        )
+        Text(text = typeName, modifier = Modifier.padding(top = 5.dp))
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun Calculator(scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope) {
-    val amountBuilder by remember { mutableStateOf(StringBuilder()) }
-    val interactionState = remember { MutableInteractionSource() }
-    val buttonColor = when {
-        interactionState.collectIsPressedAsState().value -> Blue_2
-        else -> MaterialTheme.colors.primary
-    }
+private fun Calculator(
+    amount: MutableState<String>,
+    amountBuilder: StringBuilder,
+    remark: MutableState<String>,
+    scaffoldState: BottomSheetScaffoldState,
+    scope: CoroutineScope
+) {
     var date by remember { mutableStateOf(LocalDate.now().toString()) }
     val dialogState = rememberMaterialDialogState()
     MaterialDialog(
@@ -318,7 +377,8 @@ private fun Calculator(scaffoldState: BottomSheetScaffoldState, scope: Coroutine
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxWidth(),
+            //verticalArrangement = Arrangement.Bottom
         ) {
             Row(
                 modifier = Modifier
@@ -328,123 +388,130 @@ private fun Calculator(scaffoldState: BottomSheetScaffoldState, scope: Coroutine
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = {
+                    if(remark.value == "添加备注") remark.value = ""
                     scope.launch {
                         scaffoldState.bottomSheetState.expand()
                     }
                 }) {
-                    Text(text = stringResource(id = R.string.add_remark))
+                    Text(text = remark.value)
                 }
                 TextButton(onClick = {
-                    dialogState.show() //don't need coroutineScope?
+                    dialogState.show()
                 }) {
                     Text(text = date)
                 }
             }
-            Row {
+            Divider(
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Column {
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "1"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(1)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "4"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(4)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "7"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(7)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = stringResource(id = R.string.btn_reset)
                     ) {
                         amountBuilder.delete(0, amountBuilder.length)
                         amountBuilder.append("¥0")
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                 }
                 Column {
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "2"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(2)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "5"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(5)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "8"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(8)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "0"
                     ) {
                         if(!(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0')) amountBuilder.append(0)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                 }
                 Column {
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "3"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(3)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "6"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(6)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "9"
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(9)
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = "."
                     ) {
                         if(!amountBuilder[amountBuilder.lastIndex].equals(".")) amountBuilder.append(".")
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                 }
                 Column {
                     CalculatorIconButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         imageVector = Icons.Filled.Cancel
                     ) {
                         if (amountBuilder.lastIndex > 1) {
@@ -452,10 +519,10 @@ private fun Calculator(scaffoldState: BottomSheetScaffoldState, scope: Coroutine
                         } else {
                             amountBuilder.replace(1, 2, "0")
                         }
+                        amount.value = amountBuilder.toString()
+                        Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
-                        interactionSource = interactionState,
-                        color = buttonColor,
                         text = stringResource(id = R.string.btn_confirm)
                     ) {
                         //TODO 生成账单存入数据库
@@ -469,19 +536,23 @@ private fun Calculator(scaffoldState: BottomSheetScaffoldState, scope: Coroutine
 
 @Composable
 private fun CalculatorButton(
-    interactionSource: MutableInteractionSource,
-    color: Color,
     text: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val interactionState = remember { MutableInteractionSource() }
+    val buttonColor = when {
+        interactionState.collectIsPressedAsState().value -> Blue_2
+        else -> MaterialTheme.colors.primary
+    }
     Button(
-        interactionSource = interactionSource,
+        interactionSource = interactionState,
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = color,
+            backgroundColor = buttonColor,
         ),
         shape = RoundedCornerShape(size = 5.dp),
-        modifier = Modifier.padding(bottom = 2.dp),
-        onClick = onClick
+        onClick = onClick,
+        modifier = modifier
     ) {
         Text(text = text)
     }
@@ -489,19 +560,23 @@ private fun CalculatorButton(
 
 @Composable
 private fun CalculatorIconButton(
-    interactionSource: MutableInteractionSource,
-    color: Color,
     imageVector: ImageVector,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val interactionState = remember { MutableInteractionSource() }
+    val buttonColor = when {
+        interactionState.collectIsPressedAsState().value -> Blue_2
+        else -> MaterialTheme.colors.primary
+    }
     Button(
-        interactionSource = interactionSource,
+        interactionSource = interactionState,
         colors = ButtonDefaults.buttonColors(
-            backgroundColor = color,
+            backgroundColor = buttonColor,
         ),
         shape = RoundedCornerShape(size = 5.dp),
-        modifier = Modifier.padding(bottom = 2.dp),
-        onClick = onClick
+        onClick = onClick,
+        modifier = modifier
     ) {
         Icon(
             imageVector = imageVector,
@@ -510,26 +585,32 @@ private fun CalculatorIconButton(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+/*@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterialApi::class)
 @Preview(
-    name = "NewScreen",
+    name = "Calculator",
     showBackground = true
 )
 @Composable
-fun Preview() {
+private fun PreviewCalculator() {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
-    val remark = remember{ mutableStateOf("") }
+    val remark = remember{ mutableStateOf("添加备注") }
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
+        sheetPeekHeight = 0.dp,
+        sheetGesturesEnabled = false,
         sheetContent = {
             TextField(
                 value = remark.value,
                 onValueChange = { remark.value = it },
                 label = { Text(text = stringResource(id = R.string.add_remark)) },
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent
+                    backgroundColor = Color.Transparent,
+                    disabledTextColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
                 )
             )
             Row(
@@ -540,12 +621,12 @@ fun Preview() {
                     shape = RoundedCornerShape(size = 5.dp),
                     onClick = {
                         scope.launch {
-                            remark.value = ""
+                            remark.value = "添加备注"
                             scaffoldState.bottomSheetState.collapse()
                         }
                     }) {
                     Icon(
-                        imageVector = Icons.Filled.Done,
+                        imageVector = Icons.Filled.Close,
                         contentDescription = null,
                         modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
@@ -560,7 +641,7 @@ fun Preview() {
                         }
                     }) {
                     Icon(
-                        imageVector = Icons.Filled.Close,
+                        imageVector = Icons.Filled.Done,
                         contentDescription = null,
                         modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
@@ -570,6 +651,15 @@ fun Preview() {
             }
         }
     ) {
-        Calculator(scaffoldState = scaffoldState, scope = scope)
+        Calculator(remark = remark, scaffoldState = scaffoldState, scope = scope)
     }
+}*/
+
+@Preview(
+    name = "TypeSelections",
+    showBackground = true
+)
+@Composable
+private fun PreviewTypeSelections() {
+    TypeSelections(category = 1, bills = fakeList, amount = "0.00")
 }

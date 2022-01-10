@@ -1,11 +1,12 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -21,6 +22,8 @@ import com.eynnzerr.cpbookkeeping_compose.ui.new.rememberTabContent
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
@@ -37,11 +40,20 @@ fun NavGraph(
         composable(Destinations.RECORD_ROUTE){ RecordScreen() }
         composable(Destinations.SETTING_ROUTE){ SettingScreen() }
         composable(Destinations.NEW_ROUTE){
-            val tabContent = rememberTabContent()
+            //TODO 可以将新建收入与支出的scaffoldState和remark在viewModel里区分开，分别传入。
+            //为了能在切换Tab时保留原页面的项目，可以也将其作为state存在viewModel里。
+
+            val scaffoldState = rememberBottomSheetScaffoldState()
+            val scope = rememberCoroutineScope()
+            val remark = remember{ mutableStateOf("添加备注") }
+            val tabContent = rememberTabContent(scaffoldState = scaffoldState, scope = scope, remark = remark)
             val (currentSection, updateSection) = rememberSaveable {
                 mutableStateOf(tabContent.first().section)
             }
             NewScreen(
+                scaffoldState = scaffoldState,
+                scope = scope,
+                remark = remark,
                 tabContent = tabContent,
                 currentSection = currentSection,
                 onTabChange = updateSection
