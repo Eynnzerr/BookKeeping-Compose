@@ -18,4 +18,8 @@
     <string name="btn_confirm">确定</string>
     <string name="btn_cancel">取消</string>
     <string name="btn_reset">清零</string>
+
+    <!--BillLists.kt-->
+    <string name="edit">編輯</string>
+    <string name="delete">刪除</string>
 </resources>

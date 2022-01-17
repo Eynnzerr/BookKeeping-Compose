@@ -1,4 +1,4 @@
-package com.eynnzerr.cpbookkeeping_compose.ui.new
+package com.eynnzerr.cpbookkeeping_compose.ui.addbill
 
 import android.os.Build
 import android.util.Log
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.ContentAlpha.medium
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Close
@@ -25,13 +24,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
 import com.eynnzerr.cpbookkeeping_compose.data.fakeList
-import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillCard
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_2
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -71,18 +68,19 @@ class TabContent(val section: Sections, val content: @Composable () -> Unit)
 fun NewScreen(
     scaffoldState: BottomSheetScaffoldState,
     scope: CoroutineScope,
-    remark: MutableState<String>,
+    remark: String,
     tabContent: List<TabContent>,
     currentSection: Sections,
-    onTabChange: (Sections) -> Unit
+    onTabChange: (Sections) -> Unit,
+    onRemarkChange: (String) -> Unit
 ) {
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
             TextField(
-                value = remark.value,
-                onValueChange = { remark.value = it },
+                value = remark,
+                onValueChange = { onRemarkChange(it) },
                 label = { Text(text = stringResource(id = R.string.add_remark)) },
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
@@ -102,7 +100,7 @@ fun NewScreen(
                     shape = RoundedCornerShape(size = 5.dp),
                     onClick = {
                     scope.launch {
-                        remark.value = "添加备注"
+                        onRemarkChange("添加备注")
                         scaffoldState.bottomSheetState.collapse()
                     }
                 }) {
@@ -151,7 +149,12 @@ fun NewScreen(
 fun rememberTabContent(
     scaffoldState: BottomSheetScaffoldState,
     scope: CoroutineScope,
-    remark: MutableState<String>
+    expenseState: TabState,
+    revenueState: TabState,
+    onUpdate: (Int, String, Int) -> Unit,
+    remark: String,
+    onRemarkChange: (String) -> Unit,
+    onSubmit: (Bill) -> Unit
 ): List<TabContent> {
     // Describe the screen sections here
     // Pass them to the stateless NewScreen using a tabContent.
@@ -160,7 +163,11 @@ fun rememberTabContent(
             category = -1,
             scaffoldState = scaffoldState,
             scope = scope,
-            remark = remark
+            tabState = expenseState,
+            onUpdate = onUpdate,
+            remark = remark,
+            onRemarkChange = onRemarkChange,
+            onSubmit = onSubmit
         )
     }
 
@@ -169,7 +176,11 @@ fun rememberTabContent(
             category = 1,
             scaffoldState = scaffoldState,
             scope = scope,
-            remark = remark
+            tabState = revenueState,
+            onUpdate = onUpdate,
+            remark = remark,
+            onRemarkChange = onRemarkChange,
+            onSubmit = onSubmit
         )
     }
 
@@ -255,18 +266,38 @@ private fun NewTabRowContent(
 @Composable
 private fun TabWithSections(
     category: Int,
-    remark: MutableState<String>,
+    remark: String,
+    tabState: TabState,
+    onUpdate: (Int, String, Int) -> Unit,
     scaffoldState: BottomSheetScaffoldState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    onRemarkChange: (String) -> Unit,
+    onSubmit: (Bill) -> Unit
 ) {
-    val amount = remember { mutableStateOf("¥0")}
-    val amountBuilder by remember { mutableStateOf(StringBuilder("¥0")) }
+    val amountBuilder by remember { mutableStateOf(StringBuilder(tabState.amount)) }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TypeSelections(category = category, bills = fakeList, amount = amount.value)
-        Calculator(amount = amount,amountBuilder = amountBuilder, remark = remark, scaffoldState = scaffoldState, scope = scope)
+        TypeSelections(
+            category = category,
+            bills = fakeList, //TODO 更换假数据为真数据
+            amount = tabState.amount,
+            selectedIndex = tabState.selectedIndex,
+            onUpdate = {index -> onUpdate(category, tabState.amount, index)} //only modify index
+        )
+        Calculator(
+            bills = fakeList,
+            category = category,
+            tabState = tabState,
+            onAmountChange = {amount -> onUpdate(category, amount, tabState.selectedIndex)},// only modify amount
+            amountBuilder = amountBuilder,
+            remark = remark,
+            scaffoldState = scaffoldState,
+            scope = scope,
+            onRemarkChange = onRemarkChange,
+            onSubmit = onSubmit
+        )
     }
 }
 
@@ -275,9 +306,14 @@ private fun TabWithSections(
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun TypeSelections(category: Int, bills: List<Bill>, amount: String) {
+private fun TypeSelections(
+    category: Int,
+    bills: List<Bill>,
+    amount: String,
+    selectedIndex: Int,
+    onUpdate: (Int) -> Unit
+) {
     val tintColor = if(category == -1) Color.Red else Color.Blue
-    val selectedIndex = remember { mutableStateOf(0) }
     Surface(
         elevation = 10.dp,
         modifier = Modifier.fillMaxWidth()
@@ -294,13 +330,13 @@ private fun TypeSelections(category: Int, bills: List<Bill>, amount: String) {
             ) {
                 Row {
                     Icon(
-                        painter = painterResource(id = bills[selectedIndex.value].type),
+                        painter = painterResource(id = bills[selectedIndex].type),// type  需要
                         contentDescription = null,
                         tint = tintColor,
                         modifier = Modifier.padding(end = 5.dp)
                     )
                     Text(
-                        text = billTypes[bills[selectedIndex.value].type]!!,
+                        text = billTypes[bills[selectedIndex].type]!!,
                         style = MaterialTheme.typography.body2
                     )
                 }
@@ -321,7 +357,7 @@ private fun TypeSelections(category: Int, bills: List<Bill>, amount: String) {
                         typeName = billTypes[bill.type]!!,
                         color = tintColor
                     ) {
-                        selectedIndex.value = index
+                        onUpdate(index)
                         Log.d("TypeSelections", "selectedIndex: $index")
                     }
                 }
@@ -353,13 +389,18 @@ private fun TypeListItem(resId: Int, typeName: String, color: Color, onClick: ()
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun Calculator(
-    amount: MutableState<String>,
+    bills: List<Bill>,
+    category: Int,
+    tabState: TabState,
+    onAmountChange: (String) -> Unit,
     amountBuilder: StringBuilder,
-    remark: MutableState<String>,
+    remark: String,
     scaffoldState: BottomSheetScaffoldState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    onRemarkChange: (String) -> Unit,
+    onSubmit: (Bill) ->Unit
 ) {
-    var date by remember { mutableStateOf(LocalDate.now().toString()) }
+    var date by remember { mutableStateOf(LocalDate.now().toString()) } //date 需要
     val dialogState = rememberMaterialDialogState()
     MaterialDialog(
         dialogState = dialogState,
@@ -388,12 +429,12 @@ private fun Calculator(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = {
-                    if(remark.value == "添加备注") remark.value = ""
+                    if(remark == "添加备注") onRemarkChange("")
                     scope.launch {
                         scaffoldState.bottomSheetState.expand()
                     }
                 }) {
-                    Text(text = remark.value)
+                    Text(text = remark)
                 }
                 TextButton(onClick = {
                     dialogState.show()
@@ -416,7 +457,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(1)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -424,7 +465,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(4)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -432,7 +473,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(7)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -440,7 +481,7 @@ private fun Calculator(
                     ) {
                         amountBuilder.delete(0, amountBuilder.length)
                         amountBuilder.append("¥0")
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                 }
@@ -450,7 +491,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(2)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -458,7 +499,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(5)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -466,14 +507,14 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(8)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
                         text = "0"
                     ) {
                         if(!(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0')) amountBuilder.append(0)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                 }
@@ -483,7 +524,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(3)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -491,7 +532,7 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(6)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
@@ -499,14 +540,14 @@ private fun Calculator(
                     ) {
                         if(amountBuilder.lastIndex == 1 && amountBuilder[1] == '0') amountBuilder.deleteAt(1) //remove extra zero
                         amountBuilder.append(9)
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
                         text = "."
                     ) {
                         if(!amountBuilder[amountBuilder.lastIndex].equals(".")) amountBuilder.append(".")
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                 }
@@ -519,14 +560,20 @@ private fun Calculator(
                         } else {
                             amountBuilder.replace(1, 2, "0")
                         }
-                        amount.value = amountBuilder.toString()
+                        onAmountChange(amountBuilder.toString())
                         Log.d("NewScreen", "Calculator: amount:$amountBuilder")
                     }
                     CalculatorButton(
                         text = stringResource(id = R.string.btn_confirm)
                     ) {
-                        //TODO 生成账单存入数据库
-                        Log.d("Calculator", "Calculator: add new bill.")
+                        val bill = Bill(
+                            type = bills[tabState.selectedIndex].type,
+                            amount = tabState.amount.substring(1).toFloat(),
+                            remark = remark,
+                            date = date,
+                            category = category
+                        )
+                        onSubmit(bill)
                     }
                 }
             }
@@ -585,81 +632,11 @@ private fun CalculatorIconButton(
     }
 }
 
-/*@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterialApi::class)
-@Preview(
-    name = "Calculator",
-    showBackground = true
-)
-@Composable
-private fun PreviewCalculator() {
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
-    val remark = remember{ mutableStateOf("添加备注") }
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 0.dp,
-        sheetGesturesEnabled = false,
-        sheetContent = {
-            TextField(
-                value = remark.value,
-                onValueChange = { remark.value = it },
-                label = { Text(text = stringResource(id = R.string.add_remark)) },
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
-                    disabledTextColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                )
-            )
-            Row(
-                modifier = Modifier.padding(top = 30.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    shape = RoundedCornerShape(size = 5.dp),
-                    onClick = {
-                        scope.launch {
-                            remark.value = "添加备注"
-                            scaffoldState.bottomSheetState.collapse()
-                        }
-                    }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = null,
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(text = stringResource(id = R.string.btn_cancel))
-                }
-                Button(
-                    shape = RoundedCornerShape(size = 5.dp),
-                    onClick = {
-                        scope.launch {
-                            scaffoldState.bottomSheetState.collapse()
-                        }
-                    }) {
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = null,
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(text = stringResource(id = R.string.btn_confirm))
-                }
-            }
-        }
-    ) {
-        Calculator(remark = remark, scaffoldState = scaffoldState, scope = scope)
-    }
-}*/
-
-@Preview(
+/*@Preview(
     name = "TypeSelections",
     showBackground = true
 )
 @Composable
 private fun PreviewTypeSelections() {
-    TypeSelections(category = 1, bills = fakeList, amount = "0.00")
-}
+    //TypeSelections(category = 1, bills = fakeList, amount = "0.00")
+}*/

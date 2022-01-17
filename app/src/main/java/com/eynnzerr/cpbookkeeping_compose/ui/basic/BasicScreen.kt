@@ -1,7 +1,9 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.basic
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.TweenSpec
@@ -42,6 +44,7 @@ import kotlin.math.roundToInt
 
 private const val TAG = "BasicScreen"
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalAnimationApi
 @Composable
 fun BasicScreen(
@@ -55,7 +58,10 @@ fun BasicScreen(
     Scaffold(
         topBar = {
             //Change according to currentScreen in composable.
-            CPTopBar(currentScreen)
+            CPTopBar(
+                currentScreen = currentScreen,
+                onArrowBack = { navController.popBackStack() }
+            )
         },
         floatingActionButton = {
             //only show up when it's HOME screen.
@@ -90,7 +96,7 @@ fun BasicScreen(
  * Change topBar according to different screens.
  */
 @Composable
-private fun CPTopBar(currentScreen: State<String>) {
+private fun CPTopBar(currentScreen: State<String>, onArrowBack: () -> Unit) {
     when (currentScreen.value) {
         Destinations.HOME_ROUTE -> TopAppBar(
             title = {
@@ -123,7 +129,7 @@ private fun CPTopBar(currentScreen: State<String>) {
                 Text(text = "test")
             },
             navigationIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { onArrowBack() }) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = null

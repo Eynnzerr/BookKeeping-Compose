@@ -23,6 +23,12 @@ class MainActivity : ComponentActivity() {
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContent {
+            BookkeepingApp()
+        }
+    }
+}
+
 /*        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val calendar: Calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
@@ -37,12 +43,8 @@ class MainActivity : ComponentActivity() {
             AlarmManager.INTERVAL_DAY,
             alarmIntent
         )*/
-        setContent {
-            BookkeepingApp()
-        }
-    }
-}
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalAnimationApi
 @Preview(showBackground = true)
 @Composable

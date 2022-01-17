@@ -24,12 +24,26 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState //post to ui. Composables can call collectAsState to collect data in viewmodel.
 
     init {
-        //update _uiState by calling update{it.copy(parameters...)]
         viewModelScope.launch {
             _uiState.update { it.copy(homeData = getAllData(0f)) }
             billRepository.getBillsFlow().collect { bills ->
                 _uiState.update { it.copy(billsToday = bills) }
             }
+        }
+    }
+
+    fun updateBills() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(homeData = getAllData(0f)) }
+            billRepository.getBillsFlow().collect { bills ->
+                _uiState.update { it.copy(billsToday = bills) }
+            }
+        }
+    }
+
+    fun deleteBill(bill: Bill) {
+        viewModelScope.launch {
+            billRepository.deleteBill(bill)
         }
     }
 }

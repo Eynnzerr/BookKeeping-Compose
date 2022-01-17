@@ -6,10 +6,10 @@ interface BillRepository {
 
     suspend fun getBillsFlow(): Flow<List<Bill>>
 
-    suspend fun insertBills(vararg bill: Bill)
+    suspend fun insertBill(bill: Bill)
 
-    suspend fun deleteBills(vararg bill: Bill)
+    suspend fun deleteBill(bill: Bill)
 
-    suspend fun updateBills(vararg bill: Bill)
+    suspend fun updateBill(bill: Bill)
 
 }

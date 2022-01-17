@@ -11,16 +11,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eynnzerr.cpbookkeeping_compose.R
+import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.fakeList
 import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(uiState: HomeUiState, listState: LazyListState) {
+fun HomeScreen(
+    uiState: HomeUiState,
+    listState: LazyListState,
+    updateBills: () -> Unit,
+    onDeleteBill: (Bill) -> Unit
+) {
+    updateBills()
     Column() {
         BalanceSurface(
             expenses = uiState.homeData.monthlyExpense,
@@ -32,13 +40,17 @@ fun HomeScreen(uiState: HomeUiState, listState: LazyListState) {
             expenses_today = uiState.homeData.dailyExpense,
             revenue_today = uiState.homeData.dailyRevenue
         )
-        BillList(bills = fakeList, listState)
+        BillList(
+            bills = uiState.billsToday,
+            listState = listState,
+            onEdit = {/*TODO 转到编辑页面，可以复用TabContent*/},
+            onDelete = { bill -> onDeleteBill(bill) }
+        )
     }
 }
 
 @Composable
 fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
-    val x = "****"
     var eye_closed by remember{ mutableStateOf(false) }
     Surface(
         shape = RoundedCornerShape(10.dp),
@@ -59,14 +71,14 @@ fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 RMBMount(
                     money = expenses,
                     hint = stringResource(id = R.string.no_expenses),
                     isHidden = eye_closed
                 )
-                Spacer(modifier = Modifier.padding(horizontal = 100.dp))
                 IconButton(
                     onClick = { eye_closed = !eye_closed },
                     modifier = Modifier.padding(end = 10.dp)
@@ -79,28 +91,30 @@ fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
                     )
                 }
             }
-            Row() {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
                     text = stringResource(id = R.string.monthly_revenue),
                     style = MaterialTheme.typography.body2
                 )
-                //Spacer(modifier = Modifier.padding(10.dp))
                 Text(
                     text = stringResource(id = R.string.remained_budget),
                     style = MaterialTheme.typography.body2,
-                    modifier = Modifier.padding(start = 210.dp, end = 5.dp)
                 )
             }
             Row(
                 modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp),
+                    .padding(start = 8.dp, end = 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 RMBMount(
                     money = revenue,
                     hint = stringResource(id = R.string.no_revenue),
                     isHidden = eye_closed
                 )
-                Spacer(modifier = Modifier.padding(horizontal = 80.dp))
                 RMBMount(
                     money = budget,
                     isHidden = eye_closed
@@ -172,12 +186,13 @@ fun BalanceToday(expenses_today: Float, revenue_today: Float) {
         text = infoToday,
         style = MaterialTheme.typography.body1,
         fontSize = 21.sp,
-        modifier = Modifier.padding(5.dp)
+        modifier = Modifier.padding(5.dp).fillMaxWidth(),
+        textAlign = TextAlign.Center
     )
 }
 
 @Preview(
-    name = "homeScreen",
+    name = "BalanceSurface",
     showBackground = true
 )
 @Composable
@@ -185,6 +200,5 @@ fun Preview() {
     Column() {
         BalanceSurface(expenses = 100.00f, revenue = 50.00f, budget = 200.00f)
         BalanceToday(expenses_today = 56.50f, revenue_today = 40.00f)
-        //BillList(bills = fakeList, )
     }
 }

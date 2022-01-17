@@ -1,5 +1,7 @@
 package com.eynnzerr.cpbookkeeping_compose.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -8,14 +10,12 @@ import com.eynnzerr.cpbookkeeping_compose.ui.basic.BasicScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.navigation.NavActions
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.CPBookkeepingcomposeTheme
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalAnimationApi
 @Composable
 fun BookkeepingApp() {
     CPBookkeepingcomposeTheme {
         val navController = rememberNavController()
-        val navActions = remember(navController) {
-            NavActions(navController)
-        }
         BasicScreen(
             navController = navController
         )

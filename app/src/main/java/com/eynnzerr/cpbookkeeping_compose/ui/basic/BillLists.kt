@@ -1,51 +1,107 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.basic
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
 import com.eynnzerr.cpbookkeeping_compose.R
-import com.eynnzerr.cpbookkeeping_compose.data.fakeList
 
 @Composable
-fun BillList(bills: List<Bill>, listState: LazyListState) {
-    //TODO 将传入的list作为数据源，绘制一个lazy column
+fun BillList(
+    bills: List<Bill>,
+    listState: LazyListState,
+    onEdit: (Bill) -> Unit,
+    onDelete: (Bill) -> Unit
+) {
     LazyColumn(
         state = listState
     ) {
         items(bills) { bill ->
-            BillCard(bill = bill)
+            BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
         } //items函数接收第一个参数list作为数据源，第二个参数lambda对每个item进行设置
     }
 }
 
 @Composable
-fun BillCard(bill: Bill) {
-    //TODO 组成列表的item，包括一个icon，4个text，点击可以跳转详情页，所以还需要传入一个onClick的lambda
+fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
     val tintColor = if(bill.category == -1) Color.Red else Color.Blue
+    var isDialogShown by remember { mutableStateOf(false) }
+    if (isDialogShown) {
+        Dialog(onDismissRequest = { isDialogShown = false }) {
+            Column(
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(120.dp)
+                    .background(color = Color.White)
+            ) {
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent,
+                        contentColor = Color.Black
+                    ),
+                    onClick = {
+                    onEdit(bill)
+                    isDialogShown = false
+                }) {
+                    Icon(
+                        imageVector =  Icons.Filled.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(
+                        text = stringResource(id = R.string.edit),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent,
+                        contentColor = Color.Black
+                    ),
+                    onClick = {
+                    onDelete(bill)
+                    isDialogShown = false
+                }) {
+                    Icon(
+                        imageVector =  Icons.Filled.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(
+                        text = stringResource(id = R.string.delete),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+            }
+        }
+    }
     Surface(
         color = MaterialTheme.colors.surface,
         shape = RoundedCornerShape(8.dp),
@@ -53,8 +109,11 @@ fun BillCard(bill: Bill) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 5.dp, vertical = 3.dp)
-            .clickable {
-                Log.d("BillLists", "BillCard: U clicked me!")
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {},
+                    onLongPress = { isDialogShown = true }
+                )
             }
     ) {
         Row(
@@ -127,14 +186,4 @@ fun LazyListState.isScrollingUp(): Boolean {
             }
         }
     }.value
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(
-    name = "BillCard",
-    showBackground = true
-)
-@Composable
-fun PreviewBillCard() {
-    BillCard(bill = fakeList[0])
 }

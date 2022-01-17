@@ -10,10 +10,6 @@ object Destinations {
     const val NEW_ROUTE = "new"
 }
 
-object ScreenFlag {
-
-}
-
 class NavActions(navController: NavController) {
     val navigateToHome: () -> Unit = {
         navController.navigate(Destinations.HOME_ROUTE) {
