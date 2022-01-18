@@ -2,6 +2,7 @@ package com.eynnzerr.cpbookkeeping_compose.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
@@ -18,10 +19,13 @@ import com.eynnzerr.cpbookkeeping_compose.ui.home.HomeViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.addbill.NewScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.addbill.NewViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.addbill.rememberTabContent
+import com.eynnzerr.cpbookkeeping_compose.ui.detail.DetailScreen
+import com.eynnzerr.cpbookkeeping_compose.ui.detail.DetailViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingScreen
 
+@ExperimentalFoundationApi
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -47,9 +51,20 @@ fun NavGraph(
         }
         composable(Destinations.RECORD_ROUTE) {
             val recordViewModel: RecordViewModel = hiltViewModel()
-            RecordScreen()
+            val uiState by recordViewModel.uiState.collectAsState()
+            RecordScreen(
+                uiState = uiState,
+                listState = listState,
+                updateBills = { recordViewModel.updateBills() },
+                onDeleteBill = { bill ->
+                    recordViewModel.deleteBill(bill)
+                    recordViewModel.updateBills()
+                }
+            )
         }
-        composable(Destinations.SETTING_ROUTE) { SettingScreen() }
+        composable(Destinations.SETTING_ROUTE) {
+            DetailScreen()
+        }
         composable(Destinations.NEW_ROUTE) {
             val newViewModel: NewViewModel = hiltViewModel()
             val remark by newViewModel.remarkState.collectAsState()
@@ -83,6 +98,10 @@ fun NavGraph(
                 onTabChange = updateSection,
                 onRemarkChange = { newRemark -> newViewModel.updateRemark(newRemark) }
             )
+        }
+        composable(Destinations.DETAIL_ROUTE) {
+            val detailViewModel: DetailViewModel = hiltViewModel()
+            DetailScreen()
         }
     }
 }

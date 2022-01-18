@@ -11,24 +11,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.eynnzerr.cpbookkeeping_compose.base.CPApplication.Companion.context
 import com.eynnzerr.cpbookkeeping_compose.broadcast.AlarmReceiver
 import dagger.hilt.android.AndroidEntryPoint
 
+@ExperimentalFoundationApi
+@ExperimentalAnimationApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.N)
-    @ExperimentalAnimationApi
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            BookkeepingApp()
-        }
-    }
-}
-
 /*        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val calendar: Calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
@@ -43,11 +39,8 @@ class MainActivity : ComponentActivity() {
             AlarmManager.INTERVAL_DAY,
             alarmIntent
         )*/
-
-@RequiresApi(Build.VERSION_CODES.O)
-@ExperimentalAnimationApi
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    BookkeepingApp()
+        setContent {
+            BookkeepingApp()
+        }
+    }
 }

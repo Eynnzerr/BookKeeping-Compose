@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">芃芃记账</string>
+    <string name="app_name">CPKeeping</string>
     <string name="monthly_expenses">本月支出</string>
     <string name="monthly_revenue">本月收入</string>
     <string name="no_expenses">暂无支出</string>
@@ -22,4 +22,5 @@
     <!--BillLists.kt-->
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
+    <string name="monthly_bills">"查看月账单</string>
 </resources>

@@ -61,7 +61,6 @@ android {
 }
 
 dependencies {
-
     implementation "io.github.vanpra.compose-material-dialogs:datetime:0.6.2"
 
     implementation "androidx.datastore:datastore-preferences:$datastore_version"

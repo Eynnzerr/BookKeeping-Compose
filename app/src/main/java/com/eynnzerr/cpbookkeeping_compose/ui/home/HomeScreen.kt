@@ -2,7 +2,6 @@ package com.eynnzerr.cpbookkeeping_compose.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -17,9 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
-import com.eynnzerr.cpbookkeeping_compose.data.fakeList
 import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(

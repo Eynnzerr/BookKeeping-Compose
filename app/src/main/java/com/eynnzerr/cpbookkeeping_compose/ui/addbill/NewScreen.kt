@@ -28,7 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
-import com.eynnzerr.cpbookkeeping_compose.data.fakeList
+import com.eynnzerr.cpbookkeeping_compose.data.expenseList
+import com.eynnzerr.cpbookkeeping_compose.data.revenueList
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_2
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -281,13 +282,13 @@ private fun TabWithSections(
     ) {
         TypeSelections(
             category = category,
-            bills = fakeList, //TODO 更换假数据为真数据
+            bills = if(category == -1) expenseList else revenueList,
             amount = tabState.amount,
             selectedIndex = tabState.selectedIndex,
             onUpdate = {index -> onUpdate(category, tabState.amount, index)} //only modify index
         )
         Calculator(
-            bills = fakeList,
+            bills = if(category == -1) expenseList else revenueList,
             category = category,
             tabState = tabState,
             onAmountChange = {amount -> onUpdate(category, amount, tabState.selectedIndex)},// only modify amount
@@ -330,7 +331,7 @@ private fun TypeSelections(
             ) {
                 Row {
                     Icon(
-                        painter = painterResource(id = bills[selectedIndex].type),// type  需要
+                        painter = painterResource(id = bills[selectedIndex].type),
                         contentDescription = null,
                         tint = tintColor,
                         modifier = Modifier.padding(end = 5.dp)

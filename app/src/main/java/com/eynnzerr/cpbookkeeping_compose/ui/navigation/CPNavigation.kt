@@ -8,6 +8,7 @@ object Destinations {
     const val RECORD_ROUTE = "record"
     const val SETTING_ROUTE = "setting"
     const val NEW_ROUTE = "new"
+    const val DETAIL_ROUTE = "detail"
 }
 
 class NavActions(navController: NavController) {

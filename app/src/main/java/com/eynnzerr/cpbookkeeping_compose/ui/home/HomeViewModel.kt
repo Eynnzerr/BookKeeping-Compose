@@ -1,5 +1,6 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.home
 
+import androidx.compose.animation.core.updateTransition
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
@@ -24,12 +25,7 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState //post to ui. Composables can call collectAsState to collect data in viewmodel.
 
     init {
-        viewModelScope.launch {
-            _uiState.update { it.copy(homeData = getAllData(0f)) }
-            billRepository.getBillsFlow().collect { bills ->
-                _uiState.update { it.copy(billsToday = bills) }
-            }
-        }
+        updateBills()
     }
 
     fun updateBills() {

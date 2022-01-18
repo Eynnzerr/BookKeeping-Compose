@@ -21,63 +21,84 @@ val billTypes = mapOf<Int, String>(
     R.drawable.type_study to "学习",
     R.drawable.type_supply to "水电",
     R.drawable.type_tea to "烟酒",
-    R.drawable.type_traffic to "交通"
+    R.drawable.type_traffic to "交通",
+    R.drawable.type_income to "收入",
+    R.drawable.type_bonus to "奖金",
+    R.drawable.type_borrow to "借入",
+    R.drawable.type_debt to "收债",
+    R.drawable.type_interest to "利息",
+    R.drawable.type_investment to "投资",
+    R.drawable.type_accident to "意外"
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
-val fakeList = listOf<Bill>(
+val expenseList = listOf<Bill>(
     Bill(
         type = R.drawable.type_other,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_clothes,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_communication,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_daily,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_entertainment,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_food,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_house,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_medicine,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     ),
     Bill(
         type = R.drawable.type_social,
-        amount = 10.00f,
-        remark = "fuck u",
         category = -1
     )
 )
+
+val revenueList = listOf<Bill>(
+    Bill(
+        type = R.drawable.type_other,
+        category = 1
+    ),
+    Bill(
+        type = R.drawable.type_income,
+        category = 1
+    ),
+    Bill(
+        type = R.drawable.type_borrow,
+        category = 1
+    ),
+    Bill(
+        type = R.drawable.type_debt,
+        category = 1
+    ),
+    Bill(
+        type = R.drawable.type_interest,
+        category = 1
+    ),
+    Bill(
+        type = R.drawable.type_investment,
+        category = 1
+    ),
+    Bill(
+        type = R.drawable.type_accident,
+        category = 1
+    )
+)
+

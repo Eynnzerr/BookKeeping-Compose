@@ -20,7 +20,7 @@ data class TabState(
 
 @HiltViewModel
 class NewViewModel @Inject constructor(
-    private val billRepository: BillRepositoryImpl //bug:加上仓库的依赖注入后，就无法创建viewModel实例了？？？只能暂时手动注入了
+    private val billRepository: BillRepositoryImpl
 ) : ViewModel() {
 
     //uiState for expenseTab

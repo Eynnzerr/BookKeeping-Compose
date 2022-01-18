@@ -37,7 +37,47 @@ fun BillList(
     ) {
         items(bills) { bill ->
             BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
-        } //items函数接收第一个参数list作为数据源，第二个参数lambda对每个item进行设置
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
+fun BillListWithHeader(
+    grouped: Map<String, List<Bill>>,
+    listState: LazyListState,
+    onEdit: (Bill) -> Unit,
+    onDelete: (Bill) -> Unit
+) {
+    LazyColumn(
+        state = listState
+    ) {
+        grouped.forEach { (groupDate, groupBills) ->
+            stickyHeader {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 5.dp, end = 5.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = groupDate,
+                        style = MaterialTheme.typography.body1,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = stringResource(id = R.string.monthly_bills),
+                        style = MaterialTheme.typography.body1,
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.clickable { /*TODO 打开月账单*/ }
+                    )
+                }
+            }
+            items(groupBills) { bill ->
+                BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
+            }
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -44,6 +45,7 @@ import kotlin.math.roundToInt
 
 private const val TAG = "BasicScreen"
 
+@ExperimentalFoundationApi
 @RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalAnimationApi
 @Composable
@@ -54,7 +56,6 @@ fun BasicScreen(
     val items = listOf(Screen.Home, Screen.Record, Screen.Setting)
     val listState = rememberLazyListState()
     val currentScreen = navController.currentScreen()
-    Log.d(TAG, "BasicScreen: currentScreen is:${currentScreen.value}")
     Scaffold(
         topBar = {
             //Change according to currentScreen in composable.
