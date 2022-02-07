@@ -18,6 +18,10 @@
     <string name="btn_confirm">确定</string>
     <string name="btn_cancel">取消</string>
     <string name="btn_reset">清零</string>
+    <string name="new_bar_title">新建账单</string>
+
+    <!--DetailScreen.kt-->
+    <string name="detail_bar_title">账单详情</string>
 
     <!--BillLists.kt-->
     <string name="edit">編輯</string>

@@ -22,6 +22,7 @@ import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
 fun HomeScreen(
     uiState: HomeUiState,
     listState: LazyListState,
+    openAnalysis: () -> Unit,
     updateBills: () -> Unit,
     onDeleteBill: (Bill) -> Unit
 ) {
@@ -30,7 +31,8 @@ fun HomeScreen(
         BalanceSurface(
             expenses = uiState.homeData.monthlyExpense,
             revenue = uiState.homeData.monthlyRevenue,
-            budget = uiState.homeData.budget
+            budget = uiState.homeData.budget,
+            openAnalysis = openAnalysis
         )
         Spacer(modifier = Modifier.padding(20.dp))
         BalanceToday(
@@ -47,7 +49,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
+fun BalanceSurface(
+    expenses: Float,
+    revenue: Float,
+    budget: Float,
+    openAnalysis: () -> Unit
+) {
     var eye_closed by remember{ mutableStateOf(false) }
     Surface(
         shape = RoundedCornerShape(10.dp),
@@ -118,7 +125,7 @@ fun BalanceSurface(expenses: Float, revenue: Float, budget: Float) {
                 )
             }
             Button(
-                onClick = { /*TODO*/ },
+                onClick = openAnalysis,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
                 colors = ButtonDefaults.buttonColors(
@@ -182,7 +189,7 @@ fun BalanceToday(expenses_today: Float, revenue_today: Float) {
     Text(
         text = infoToday,
         style = MaterialTheme.typography.body1,
-        fontSize = 21.sp,
+        fontSize = 18.sp,
         modifier = Modifier.padding(5.dp).fillMaxWidth(),
         textAlign = TextAlign.Center
     )
@@ -195,7 +202,7 @@ fun BalanceToday(expenses_today: Float, revenue_today: Float) {
 @Composable
 fun Preview() {
     Column() {
-        BalanceSurface(expenses = 100.00f, revenue = 50.00f, budget = 200.00f)
+        BalanceSurface(expenses = 100.00f, revenue = 50.00f, budget = 200.00f, openAnalysis = {})
         BalanceToday(expenses_today = 56.50f, revenue_today = 40.00f)
     }
 }

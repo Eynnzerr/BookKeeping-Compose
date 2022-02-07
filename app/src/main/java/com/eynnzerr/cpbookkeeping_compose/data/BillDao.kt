@@ -22,4 +22,16 @@ interface BillDao {
 
     @Update
     suspend fun updateBills(vararg bill: Bill)
+
+    @Query("SELECT day AS mIndex, SUM(amount) AS mValue FROM bills WHERE month = :month AND category = :category GROUP BY day")
+    fun getSumByDay(month: Int, category: Int): Flow<List<BillStatistic>>
+
+    @Query("SELECT month AS mIndex, SUM(amount) AS mValue FROM bills WHERE year = :year AND category = :category GROUP BY month")
+    fun getSumByMonth(year: Int, category: Int): Flow<List<BillStatistic>>
+
+    @Query("SELECT type AS mIndex, SUM(amount) AS mValue FROM bills WHERE month = :month AND category = :category GROUP BY type")
+    fun getDaySumByType(month: Int, category: Int): Flow<List<BillStatistic>>
+
+    @Query("SELECT type AS mIndex, SUM(amount) AS mValue FROM bills WHERE year = :year AND category = :category GROUP BY type")
+    fun getMonthSumByType(year: Int, category: Int): Flow<List<BillStatistic>>
 }

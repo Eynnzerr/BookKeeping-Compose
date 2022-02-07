@@ -19,6 +19,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
@@ -157,44 +158,30 @@ fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
             }
     ) {
         Row(
-            modifier = Modifier.padding(all = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .padding(all = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            /*Box(
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Canvas(modifier = Modifier.size(80.dp)) {
-                    val canvasWidth = size.width
-                    val canvasHeight = size.height
-                    drawCircle(
-                        color = tintColor,
-                        center = Offset(x = canvasWidth / 2, y = canvasHeight / 2),
-                        radius = size.minDimension / 4
-                    )
-                }
                 Icon(
                     painter = painterResource(id = bill.type),
                     contentDescription = null,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Color.White),
                     //TODO 加上选中变色(支出变红，收入变蓝)，常态灰白色的效果。且裁剪为圆形，有背景色和图标色
                     tint = tintColor
                 )
-            }*/
-            Icon(
-                painter = painterResource(id = bill.type),
-                contentDescription = null,
-                //TODO 加上选中变色(支出变红，收入变蓝)，常态灰白色的效果。且裁剪为圆形，有背景色和图标色
-                tint = tintColor
-            )
-            Spacer(modifier = Modifier.padding(horizontal = 5.dp))//spacer + padding 等价于原先的margin
-            Text(
-                text = billTypes[bill.type]!!,
-                style = MaterialTheme.typography.body2
-            )
-            Spacer(modifier = Modifier.padding(horizontal = 110.dp))
-            Column() {
+                Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+                Text(
+                    text = billTypes[bill.type]!!,
+                    style = MaterialTheme.typography.body2
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
                 Text(
                     text = "¥" + String.format("%.2f", bill.amount),
                     style = MaterialTheme.typography.body2,
@@ -203,7 +190,9 @@ fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
                 Spacer(modifier = Modifier.padding(vertical = 5.dp))
                 Text(
                     text = bill.date,
-                    textAlign = TextAlign.End
+                    style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.End,
+                    maxLines = 1
                 )
             }
         }
@@ -226,4 +215,18 @@ fun LazyListState.isScrollingUp(): Boolean {
             }
         }
     }.value
+}
+
+@Preview(
+    name = "BalanceSurface",
+    showBackground = true
+)
+@Composable
+private fun PreviewBillCard() {
+    val bill = Bill(
+        type = R.drawable.type_other,
+        category = -1,
+        date = "2022-01-31"
+    )
+    BillCard(bill = bill, onEdit = {}, onDelete = {})
 }

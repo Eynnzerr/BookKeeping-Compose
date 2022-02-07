@@ -2,9 +2,14 @@ package com.eynnzerr.cpbookkeeping_compose.ui.detail
 
 import android.graphics.Rect
 import android.graphics.Shader
+import android.util.Log
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -13,23 +18,46 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.eynnzerr.cpbookkeeping_compose.R
+import com.eynnzerr.cpbookkeeping_compose.data.Bill
+import com.eynnzerr.cpbookkeeping_compose.data.BillStatistic
+import com.eynnzerr.cpbookkeeping_compose.data.billTypes
+import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.PercentFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 import kotlin.random.Random
 
 // 首先获取本月度总支出与总收入，对当前月的数据求和即可。
 // 接着，依次获取本月度各个天数的总支出、总收入，随同天数一起传给LineChart
 // 接着，获取本月度各类型收入/支出的总和，随同类型一起传给PieChart
-@Composable
-fun DetailScreen() {
-    LineChart()
-}
+private const val TAG = "DetailScreen"
 
 @Composable
-fun LineChart() {
-    val marginLeft = 180f
-    val marginBottom = 240f
-    val marginRight = 80f
-    val dataList = listOf(0,0,0,300,600,1000,0)
+fun DetailScreen(
+    uiState: DetailUiState
+) {
+    MPPieChart(billData = uiState.pieDataMonthly)
+}
+
+/**
+ * Draw a lineChart for dataList passed in with default 4 lines.
+ * @param marginLeft left margin of the horizontal line(Not the text!) to the left side of the screen.
+ * @param marginBottom bottom margin to the bottom of the screen.
+ * @param marginRight right margin to the right side of the screen.
+ * @param dataList list of data that is to be shown in chart. Should not be empty list!!!
+ **/
+@Composable
+fun LineChart(
+    marginLeft: Float,
+    marginBottom: Float,
+    marginRight: Float,
+    dataList: List<Float>
+) {
     val gridNumber = dataList.size - 1
+    val maxValue = dataList.maxOrNull()
+    val valuePartition = maxValue?.div(3)
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawIntoCanvas { canvas ->
@@ -86,19 +114,15 @@ fun LineChart() {
 
             // Draw text on Y-Alias
             canvas.save()
-            //TODO 换为真实数据源
             (0 until 4).forEach { index ->
                 if (index > 0) canvas.translate(0f, gridHeight)
-                var str = ""
-                if (index == 0) {
-                    str = "${index}"
-                } else if (index == 1) {
-                    str = "${500}"
-                } else if (index == 2) {
-                    str = "1k"
-                } else {
-                    str = "1.5k"
+                val floatY = when(index) {
+                    0 -> 0f
+                    1 -> valuePartition
+                    2 -> valuePartition!! * 2
+                    else -> maxValue
                 }
+                val str = String.format("%.2f", floatY)
 
                 canvas.save()
                 canvas.scale(1f, -1f)
@@ -121,11 +145,11 @@ fun LineChart() {
                 color = android.graphics.Color.argb(100, 111, 111, 111)
             }
             val caves_path = android.graphics.Path()
-            val unitY = gridHeight / 500
+            val unitY = gridHeight / valuePartition!!
             val unitX = gridWidth
             val linearGradient = android.graphics.LinearGradient(
                 0f,
-                1000 * unitY, //TODO 遍历求得数据集最大值
+                maxValue * unitY,
                 0f,
                 0f,
                 android.graphics.Color.argb(255, 229, 160, 144),
@@ -142,34 +166,34 @@ fun LineChart() {
                 } else if (dataList[index] < dataList[index + 1]) {//y1<y2情况
                     val centerX = (gridWidth * index + gridWidth * (1 + index)) / 2
                     val centerY =
-                        (dataList[index].toFloat() * unitY + dataList[index + 1].toFloat() * unitY) / 2
+                        (dataList[index] * unitY + dataList[index + 1] * unitY) / 2
                     val controX0 = (gridWidth * index + centerX) / 2
-                    val controY0 = (dataList[index].toFloat() * unitY + centerY) / 2
+                    val controY0 = (dataList[index] * unitY + centerY) / 2
                     val controX1 = (centerX + gridWidth * (1 + index)) / 2
-                    val controY1 = (centerY + dataList[index + 1].toFloat() * unitY) / 2
+                    val controY1 = (centerY + dataList[index + 1] * unitY) / 2
                     caves_path.cubicTo(
                         controX0 + xMoveDistance,
                         controY0 - yMoveDistance,
                         controX1 - xMoveDistance,
                         controY1 + yMoveDistance,
                         gridWidth * (1 + index),
-                        dataList[index + 1].toFloat() * unitY
+                        dataList[index + 1] * unitY
                     )
                 } else {
                     val centerX = (gridWidth * index + gridWidth * (1 + index)) / 2
                     val centerY =
-                        (dataList[index].toFloat() * unitY + dataList[index + 1].toFloat() * unitY) / 2
+                        (dataList[index] * unitY + dataList[index + 1] * unitY) / 2
                     val controX0 = (gridWidth * index + centerX) / 2
-                    val controY0 = (dataList[index].toFloat() * unitY + centerY) / 2
+                    val controY0 = (dataList[index] * unitY + centerY) / 2
                     val controX1 = (centerX + gridWidth * (1 + index)) / 2
-                    val controY1 = (centerY + dataList[index + 1].toFloat() * unitY) / 2
+                    val controY1 = (centerY + dataList[index + 1] * unitY) / 2
                     caves_path.cubicTo(
                         controX0 + xMoveDistance,
                         controY0 + yMoveDistance,
                         controX1 - xMoveDistance,
                         controY1 - yMoveDistance,
                         gridWidth * (1 + index),
-                        dataList[index + 1].toFloat() * unitY
+                        dataList[index + 1] * unitY
                     )
 
                 }
@@ -208,18 +232,22 @@ fun PieChart(dataList: List<Float>) {
     val ratio = List(size = dataList.size) { index ->
         360f * dataList[index] / sum
     }
-    Canvas(modifier = Modifier.size(300.dp)) {
-        val piePadding = size.width * 0.15f
+    Canvas(modifier = Modifier
+        .size(300.dp)
+    ) {
+        val piePadding = size.width * 0.15f //change the radius of the circle
         (dataList.indices).forEach { index ->
-            drawArc(
-                color = randomColor(),
-                startAngle = startAngle,
-                sweepAngle = ratio[index],
-                useCenter = true,
-                topLeft = Offset(piePadding, piePadding),
-                size = Size(size.width - piePadding * 2f, size.height - piePadding * 2f)
-            )
-            startAngle += ratio[index]
+            if(ratio[index] != 0f) {
+                drawArc(
+                    color = randomColor(),
+                    startAngle = startAngle,
+                    sweepAngle = ratio[index],
+                    useCenter = true,
+                    topLeft = Offset(piePadding * 2, piePadding * 6),
+                    size = Size(size.width - piePadding * 2f, size.height - piePadding * 2f)
+                )
+                startAngle += ratio[index]
+            }
         }
     }
 }
@@ -231,13 +259,94 @@ private fun randomColor(): Color {
     return Color(red, green, blue)
 }
 
+@Composable
+private fun MPLineChart(billData: List<Bill>) {
+    val entries = ArrayList<Entry>().apply {
+        for (bill in billData) {
+            //提取天数
+        }
+    }
+}
+
+@Composable
+private fun MPPieChart(billData: List<BillStatistic>) {
+    if (billData.isEmpty()) {
+        Text(text = "暂无数据...")
+    }
+    else {
+        val entries = ArrayList<PieEntry>().apply {
+            for (statistic in billData){
+                add(PieEntry(statistic.mValue, billTypes[statistic.mIndex]))
+            }
+        }
+        val sliceColors = ArrayList<Int>().apply {
+            for (color in ColorTemplate.VORDIPLOM_COLORS) add(color)
+        }
+        val dataSet = PieDataSet(entries, "").apply {
+            colors = sliceColors
+            sliceSpace = 2f
+            selectionShift = 10f
+            valueLineColor = android.graphics.Color.BLACK
+            valueLinePart1OffsetPercentage = 80f
+            valueLinePart1Length = 0.2f
+            valueLinePart2Length = 0.4f
+            xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
+            yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
+        }
+        val pieData = PieData(dataSet).apply {
+            setDrawValues(true)
+            setValueFormatter(PercentFormatter())
+            setValueTextColor(android.graphics.Color.BLACK)
+            setValueTextSize(40f)
+        }
+        AndroidView(
+            factory = { context ->
+                com.github.mikephil.charting.charts.PieChart(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+
+                    setUsePercentValues(true)
+                    description.isEnabled = false
+                    legend.isEnabled = false
+                    setBackgroundColor(android.graphics.Color.WHITE)
+                    setExtraOffsets(40f,0f,40f,0f)
+                    dragDecelerationFrictionCoef = 0.95f
+                    rotationAngle = -30f
+                    isRotationEnabled = true
+                    isHighlightPerTapEnabled = true
+                    animateY(500, Easing.EaseInQuad)
+
+                    setDrawEntryLabels(true)
+                    setEntryLabelColor(android.graphics.Color.BLACK)
+                    setEntryLabelTextSize(15f)
+
+                    isDrawHoleEnabled = true
+                    holeRadius = 38f
+                    transparentCircleRadius = 41f
+                    setTransparentCircleColor(android.graphics.Color.BLACK)
+                    setTransparentCircleAlpha(50)
+                    setHoleColor(android.graphics.Color.WHITE)
+
+                    data = pieData
+                    highlightValues(null)
+                    invalidate()
+                }
+            }
+        )
+    }
+}
+
 @Preview(
     name = "LineChart",
     showBackground = true
 )
 @Composable
 fun PreviewLineChart() {
-    LineChart()
+    LineChart(
+        marginLeft = 180f,
+        marginBottom = 240f,
+        marginRight = 80f,
+        dataList = listOf(0f,0f,0f,1000f,300f,600f,0f)
+    )
 }
 
 @Preview(
@@ -248,4 +357,31 @@ fun PreviewLineChart() {
 fun PreviewPieChart() {
     val dataList = listOf(23f, 15f, 30f, 32f)
     PieChart(dataList)
+}
+
+@Preview(
+    name = "AndroidView",
+    showBackground = true
+)
+@Composable
+fun PreviewAndroidView() {
+    val bills = listOf(
+        BillStatistic(
+            mIndex = R.drawable.type_other,
+            mValue = 46f
+        ),
+        BillStatistic(
+            mIndex = R.drawable.type_entertainment,
+            mValue = 30f
+        ),
+        BillStatistic(
+            mIndex = R.drawable.type_clothes,
+            mValue = 60f
+        ),
+        BillStatistic(
+            mIndex = R.drawable.type_daily,
+            mValue = 64f
+        )
+    )
+    MPPieChart(billData = bills)
 }

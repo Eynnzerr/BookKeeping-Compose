@@ -402,7 +402,11 @@ private fun Calculator(
     onSubmit: (Bill) ->Unit
 ) {
     var date by remember { mutableStateOf(LocalDate.now().toString()) } //date 需要
+    var day by remember { mutableStateOf(0) }
+    var month by remember { mutableStateOf(0) }
+    var year by remember { mutableStateOf(0) }
     val dialogState = rememberMaterialDialogState()
+
     MaterialDialog(
         dialogState = dialogState,
         buttons = {
@@ -412,6 +416,9 @@ private fun Calculator(
     ) {
         datepicker { selectedDate ->
             date = selectedDate.toString()
+            day = selectedDate.dayOfMonth
+            month = selectedDate.monthValue
+            year = selectedDate.year
         }
     }
     Surface(
@@ -572,6 +579,9 @@ private fun Calculator(
                             amount = tabState.amount.substring(1).toFloat(),
                             remark = remark,
                             date = date,
+                            day = day,
+                            month = month,
+                            year = year,
                             category = category
                         )
                         onSubmit(bill)

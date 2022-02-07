@@ -127,12 +127,33 @@ private fun CPTopBar(currentScreen: State<String>, onArrowBack: () -> Unit) {
         )
         Destinations.NEW_ROUTE -> TopAppBar(
             title = {
-                Text(text = "test")
+                Text(text = stringResource(id = R.string.new_bar_title))
             },
             navigationIcon = {
                 IconButton(onClick = { onArrowBack() }) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+        Destinations.DETAIL_ROUTE -> TopAppBar(
+            title = {
+                Text(text = stringResource(id = R.string.detail_bar_title))
+            },
+            navigationIcon = {
+                IconButton(onClick = { onArrowBack() }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = { /*TODO open calendar*/ }) {
+                    Icon(
+                        imageVector = Icons.Filled.CalendarViewMonth,
                         contentDescription = null
                     )
                 }
@@ -309,7 +330,11 @@ private fun NavController.currentScreen(): State<String> {
             when {
                 destination.hierarchy.any { it.route == Destinations.NEW_ROUTE } -> {
                     currentScreen.value = Destinations.NEW_ROUTE
-                } else -> currentScreen.value = Destinations.HOME_ROUTE
+                }
+                destination.hierarchy.any { it.route == Destinations.DETAIL_ROUTE } -> {
+                    currentScreen.value = Destinations.DETAIL_ROUTE
+                }
+                else -> currentScreen.value = Destinations.HOME_ROUTE
             }
         }
         addOnDestinationChangedListener(listener)
@@ -317,6 +342,7 @@ private fun NavController.currentScreen(): State<String> {
             removeOnDestinationChangedListener(listener)
         }
     }
+    Log.d(TAG, "currentScreen: $currentScreen")
     return currentScreen
 }
 
