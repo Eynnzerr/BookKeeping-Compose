@@ -183,7 +183,7 @@ private fun DraggableFloatingButton(
             }
     ) {
         Icon(
-            imageVector = Icons.Default.Add,
+            imageVector = Icons.Default.Edit,
             contentDescription = null,
             tint = Color.White
         )
@@ -331,7 +331,7 @@ private fun NavController.currentScreen(): State<String> {
                 destination.hierarchy.any { it.route == Destinations.NEW_ROUTE } -> {
                     currentScreen.value = Destinations.NEW_ROUTE
                 }
-                destination.hierarchy.any { it.route == Destinations.DETAIL_ROUTE } -> {
+                destination.hierarchy.any { it.route!!.startsWith(Destinations.DETAIL_ROUTE) } -> {
                     currentScreen.value = Destinations.DETAIL_ROUTE
                 }
                 else -> currentScreen.value = Destinations.HOME_ROUTE

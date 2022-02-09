@@ -1,5 +1,7 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,96 +58,107 @@ fun BalanceSurface(
     openAnalysis: () -> Unit
 ) {
     var eye_closed by remember{ mutableStateOf(false) }
+    var expanded by remember{ mutableStateOf(true) }
     Surface(
         shape = RoundedCornerShape(10.dp),
         elevation = 10.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp)
+            .padding(top = 10.dp, start = 5.dp, end = 5.dp, bottom = 5.dp)
+            .clickable { expanded = !expanded }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(5.dp)
-        ) {
+        if (!expanded) {
             Text(
-                text = stringResource(id = R.string.monthly_expenses),
-                style = MaterialTheme.typography.body2
+                text = stringResource(id = R.string.expanding),
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.padding(5.dp),
+                fontSize = 18.sp
             )
-            Row(
+        }
+        AnimatedVisibility(expanded) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(5.dp)
             ) {
-                RMBMount(
-                    money = expenses,
-                    hint = stringResource(id = R.string.no_expenses),
-                    isHidden = eye_closed
+                Text(
+                    text = stringResource(id = R.string.monthly_expenses),
+                    style = MaterialTheme.typography.body2
                 )
-                IconButton(
-                    onClick = { eye_closed = !eye_closed },
-                    modifier = Modifier.padding(end = 10.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    RMBMount(
+                        money = expenses,
+                        hint = stringResource(id = R.string.no_expenses),
+                        isHidden = eye_closed
+                    )
+                    IconButton(
+                        onClick = { eye_closed = !eye_closed },
+                        modifier = Modifier.padding(end = 10.dp)
+                    ) {
+                        Icon(
+                            painter = if(eye_closed) painterResource(id = R.drawable.ic_eye_closed)
+                            else painterResource(id = R.drawable.eye_open),
+                            contentDescription = null,
+                            tint = MaterialTheme.colors.primary
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.monthly_revenue),
+                        style = MaterialTheme.typography.body2
+                    )
+                    Text(
+                        text = stringResource(id = R.string.remained_budget),
+                        style = MaterialTheme.typography.body2,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(start = 8.dp, end = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    RMBMount(
+                        money = revenue,
+                        hint = stringResource(id = R.string.no_revenue),
+                        isHidden = eye_closed
+                    )
+                    RMBMount(
+                        money = budget,
+                        isHidden = eye_closed
+                    )
+                }
+                Button(
+                    onClick = openAnalysis,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent,
+                        contentColor = MaterialTheme.colors.primary
+                    ),
+                    elevation = null
                 ) {
                     Icon(
-                        painter = if(eye_closed) painterResource(id = R.drawable.ic_eye_closed) 
-                        else painterResource(id = R.drawable.eye_open),
+                        painterResource(id = R.drawable.ic_profit),
                         contentDescription = null,
-                        tint = MaterialTheme.colors.primary
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(
+                        text = stringResource(id = R.string.visulized_analysis),
+                        style = MaterialTheme.typography.body2
                     )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(id = R.string.monthly_revenue),
-                    style = MaterialTheme.typography.body2
-                )
-                Text(
-                    text = stringResource(id = R.string.remained_budget),
-                    style = MaterialTheme.typography.body2,
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                RMBMount(
-                    money = revenue,
-                    hint = stringResource(id = R.string.no_revenue),
-                    isHidden = eye_closed
-                )
-                RMBMount(
-                    money = budget,
-                    isHidden = eye_closed
-                )
-            }
-            Button(
-                onClick = openAnalysis,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Transparent,
-                    contentColor = MaterialTheme.colors.primary
-                ),
-                elevation = null
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.ic_profit),
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                Text(
-                    text = stringResource(id = R.string.visulized_analysis),
-                    style = MaterialTheme.typography.body2
-                )
-            }
-
         }
     }
 }
@@ -190,7 +203,9 @@ fun BalanceToday(expenses_today: Float, revenue_today: Float) {
         text = infoToday,
         style = MaterialTheme.typography.body1,
         fontSize = 18.sp,
-        modifier = Modifier.padding(5.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(5.dp)
+            .fillMaxWidth(),
         textAlign = TextAlign.Center
     )
 }

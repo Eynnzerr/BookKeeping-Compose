@@ -42,6 +42,19 @@ fun BillList(
     }
 }
 
+@Composable
+fun BillList(
+    bills: List<Bill>,
+    onEdit: (Bill) -> Unit,
+    onDelete: (Bill) -> Unit
+) {
+    LazyColumn {
+        items(bills) { bill ->
+            BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
+        }
+    }
+}
+
 @ExperimentalFoundationApi
 @Composable
 fun BillListWithHeader(

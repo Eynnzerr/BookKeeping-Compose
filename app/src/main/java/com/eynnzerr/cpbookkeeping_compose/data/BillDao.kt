@@ -8,6 +8,15 @@ interface BillDao {
     @Query("SELECT * FROM bills")
     fun getAllBills(): Flow<List<Bill>>
 
+    @Query("SELECT * FROM bills WHERE date = :date")
+    fun getBillsByDate(date: String): Flow<List<Bill>>
+
+    @Query("SELECT * FROM bills WHERE month = :month AND year = :year AND category = :category")
+    fun getBillsByMonthYear(month: Int, year: Int, category: Int): Flow<List<Bill>>
+
+    @Query("SELECT * FROM bills WHERE year = :year AND category = :category")
+    fun getBillsByYear(year: Int, category: Int): Flow<List<Bill>>
+
     @Query("SELECT * FROM bills WHERE category = -1")
     suspend fun getExpenses(): List<Bill>
 

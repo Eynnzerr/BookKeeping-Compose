@@ -117,7 +117,7 @@ fun NavGraph(
             val detailViewModel = hiltViewModel<DetailViewModel>().apply {
                 month = it.arguments?.getInt("month")!!
                 year = it.arguments?.getInt("year")!!
-                loadData()
+                loadData(-1)
             }
             val uiState by detailViewModel.uiState.collectAsState()
             DetailScreen(

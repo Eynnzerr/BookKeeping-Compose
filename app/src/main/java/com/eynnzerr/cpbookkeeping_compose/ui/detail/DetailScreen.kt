@@ -7,23 +7,36 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.BillStatistic
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
+import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
 import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
@@ -38,7 +51,95 @@ private const val TAG = "DetailScreen"
 fun DetailScreen(
     uiState: DetailUiState
 ) {
-    MPPieChart(billData = uiState.pieDataMonthly)
+    val category by remember { mutableStateOf(-1) }
+    Column(
+
+    ) {
+        Surface(
+            elevation = 10.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 5.dp)
+        ) {
+            Text(
+                text = uiState.dateToday,
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.padding(5.dp),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Row (
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row (
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 5.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = { /*TODO*/ }
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.revenue),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+            }
+            Row (
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 5.dp, end = 5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = { /*TODO*/ }
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.expense),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+                Button(
+                    onClick = { /*TODO*/ },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent,
+                        contentColor = MaterialTheme.colors.primary
+                    ),
+                    elevation = null
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.switch_my),
+                        style = MaterialTheme.typography.body2
+                    )
+                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                    Icon(
+                        imageVector = Icons.Filled.SwapHoriz,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                }
+            }
+        }
+        Surface(
+            elevation = 10.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 5.dp)
+        ) {
+            MPLineChart(billData = uiState.detailData.lineDataMonthly, category = category)
+        }
+        Surface(
+            elevation = 10.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 5.dp)
+        ) {
+            MPPieChart(billData = uiState.detailData.pieDataMonthly, category = category)
+        }
+        BillList(bills = uiState.bills, onEdit = {}, onDelete = {})
+    }
 }
 
 /**
@@ -260,27 +361,91 @@ private fun randomColor(): Color {
 }
 
 @Composable
-private fun MPLineChart(billData: List<Bill>) {
-    val entries = ArrayList<Entry>().apply {
-        for (bill in billData) {
-            //提取天数
+private fun MPLineChart(billData: List<BillStatistic>, category: Int) {
+    if (billData.isEmpty()) {
+        Text(text = stringResource(id = R.string.no_data))
+    }
+    else {
+        val entries = ArrayList<Entry>().apply {
+            for (statistic in billData) {
+                add(Entry(statistic.mIndex.toFloat(), statistic.mValue))
+            }
         }
+        val dataSet = LineDataSet(entries, "").apply {
+            //configure...
+            setDrawIcons(false)
+            //enableDashedLine(10f, 5f, 0f)
+            val lineColor = if(category == -1) 0xFFFF5722 else 0xFF03A9F4
+            color = lineColor.toInt()
+            setCircleColor(lineColor.toInt())
+            lineWidth = 1f
+            circleRadius = 3f
+            setDrawCircleHole(false)
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+            setDrawFilled(true)
+            fillDrawable = when (category) {
+                -1 -> ContextCompat.getDrawable(LocalContext.current, R.drawable.color_filled_red)
+                1 -> ContextCompat.getDrawable(LocalContext.current, R.drawable.color_filled_blue)
+                else -> ContextCompat.getDrawable(LocalContext.current, R.drawable.color_filled_red)
+            }
+        }
+        val lineData = LineData(dataSet).apply {
+            //configure...
+        }
+        AndroidView(
+            factory = { context ->
+                com.github.mikephil.charting.charts.LineChart(context).apply {
+                    //configure...
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 500)
+                    description.isEnabled = false
+                    legend.isEnabled = false
+                    setTouchEnabled(true)
+
+                    //configure background
+                    setBackgroundColor(android.graphics.Color.WHITE)
+                    setDrawGridBackground(false)
+                    setDrawBorders(false)
+
+                    //configure animation
+                    isDragEnabled = true
+                    setScaleEnabled(true)
+                    setPinchZoom(true)
+                    animateXY(500, 500)
+
+                    //configure x-y axis
+                    xAxis.position = XAxis.XAxisPosition.BOTTOM
+                    xAxis.setDrawGridLines(false)
+                    axisLeft.setDrawGridLines(true)
+                    axisLeft.enableGridDashedLine(10f, 10f, 0f)
+                    axisRight.isEnabled = false
+                    axisRight.setDrawGridLines(false)
+
+                    data = lineData
+                    invalidate()
+                }
+            }
+        )
     }
 }
 
 @Composable
-private fun MPPieChart(billData: List<BillStatistic>) {
+private fun MPPieChart(billData: List<BillStatistic>, category: Int) {
     if (billData.isEmpty()) {
-        Text(text = "暂无数据...")
+        Text(text = stringResource(id = R.string.no_data))
     }
     else {
         val entries = ArrayList<PieEntry>().apply {
-            for (statistic in billData){
+            for (statistic in billData) {
                 add(PieEntry(statistic.mValue, billTypes[statistic.mIndex]))
             }
         }
         val sliceColors = ArrayList<Int>().apply {
-            for (color in ColorTemplate.VORDIPLOM_COLORS) add(color)
+            val colors = when (category) {
+                -1 -> ColorTemplate.VORDIPLOM_COLORS
+                1 -> ColorTemplate.LIBERTY_COLORS
+                else -> ColorTemplate.MATERIAL_COLORS
+            }
+            for (color in colors) add(color)
         }
         val dataSet = PieDataSet(entries, "").apply {
             colors = sliceColors
@@ -297,12 +462,12 @@ private fun MPPieChart(billData: List<BillStatistic>) {
             setDrawValues(true)
             setValueFormatter(PercentFormatter())
             setValueTextColor(android.graphics.Color.BLACK)
-            setValueTextSize(40f)
+            setValueTextSize(15f)
         }
         AndroidView(
             factory = { context ->
                 com.github.mikephil.charting.charts.PieChart(context).apply {
-                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                    layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 800)
 
                     setUsePercentValues(true)
                     description.isEnabled = false
@@ -336,35 +501,11 @@ private fun MPPieChart(billData: List<BillStatistic>) {
 }
 
 @Preview(
-    name = "LineChart",
-    showBackground = true
-)
-@Composable
-fun PreviewLineChart() {
-    LineChart(
-        marginLeft = 180f,
-        marginBottom = 240f,
-        marginRight = 80f,
-        dataList = listOf(0f,0f,0f,1000f,300f,600f,0f)
-    )
-}
-
-@Preview(
     name = "PieChart",
     showBackground = true
 )
 @Composable
 fun PreviewPieChart() {
-    val dataList = listOf(23f, 15f, 30f, 32f)
-    PieChart(dataList)
-}
-
-@Preview(
-    name = "AndroidView",
-    showBackground = true
-)
-@Composable
-fun PreviewAndroidView() {
     val bills = listOf(
         BillStatistic(
             mIndex = R.drawable.type_other,
@@ -383,5 +524,32 @@ fun PreviewAndroidView() {
             mValue = 64f
         )
     )
-    MPPieChart(billData = bills)
+    MPPieChart(billData = bills, category = -1)
+}
+
+@Preview(
+    name = "LineChart",
+    showBackground = true
+)
+@Composable
+fun PreviewLineChart() {
+    val bills = listOf(
+        BillStatistic(
+            mIndex = 3,
+            mValue = 46f
+        ),
+        BillStatistic(
+            mIndex = 7,
+            mValue = 30f
+        ),
+        BillStatistic(
+            mIndex = 15,
+            mValue = 60f
+        ),
+        BillStatistic(
+            mIndex = 21,
+            mValue = 64f
+        )
+    )
+    MPLineChart(billData = bills, category = -1)
 }

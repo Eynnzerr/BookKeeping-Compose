@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">CPKeeping</string>
+
+    <!--HomeScreen.kt-->
     <string name="monthly_expenses">本月支出</string>
     <string name="monthly_revenue">本月收入</string>
     <string name="no_expenses">暂无支出</string>
@@ -10,6 +12,7 @@
     <string name="daily_revenue">今日收入</string>
     <string name="x">****</string>
     <string name="cancel_new">Cancel</string>
+    <string name="expanding">展开账单详细信息…</string>
 
     <!--NewScreen.kt-->
     <string name="section_new_revenue">收入</string>
@@ -22,6 +25,10 @@
 
     <!--DetailScreen.kt-->
     <string name="detail_bar_title">账单详情</string>
+    <string name="no_data">暂无数据…</string>
+    <string name="switch_my">切换年-月</string>
+    <string name="expense">支出</string>
+    <string name="revenue">收入</string>
 
     <!--BillLists.kt-->
     <string name="edit">編輯</string>

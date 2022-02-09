@@ -1,6 +1,9 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.home
 
+import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.updateTransition
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +14,7 @@ import com.eynnzerr.cpbookkeeping_compose.utils.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.*
 import javax.inject.Inject
 
@@ -32,6 +36,7 @@ class HomeViewModel @Inject constructor(
         updateBills()
     }
 
+    @SuppressLint("NewApi")
     fun updateBills() {
         viewModelScope.launch {
             // check if data needs updating.
@@ -43,19 +48,19 @@ class HomeViewModel @Inject constructor(
             currentMonth = month
             currentYear = calendar.get(Calendar.YEAR)
             Log.d("HomeViewModel", "updateBills: old:$oldMonth-$oldDay new:$month-$today")
-            if (!oldDay.equals(today)) {
+            if (oldDay != today) {
                 updateFloatData(0f, DAILY_EXPENSE)
                 updateFloatData(0f, DAILY_REVENUE)
                 updateIntData(today, DAY_RECORD)
             }
-            if (!oldMonth.equals(month)) {
+            if (oldMonth != month) {
                 updateFloatData(0f, MONTHLY_EXPENSE)
                 updateFloatData(0f, MONTHLY_REVENUE)
                 updateIntData(month, MONTH_RECORD)
             }
 
             _uiState.update { it.copy(homeData = getAllData(0f)) }
-            billRepository.getBillsFlow().collect { bills ->
+            billRepository.getBillsByDate(LocalDate.now().toString()).collect { bills ->
                 _uiState.update { it.copy(billsToday = bills) }
             }
         }

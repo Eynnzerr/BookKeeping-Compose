@@ -51,3 +51,15 @@ suspend fun getAllData(defaultValue: Float): HomeData = context.dataStore.data.m
         preferences[BUDGET]?:defaultValue
     )
 }.first()
+
+suspend fun resetAllData() {
+    context.dataStore.edit { preferences ->
+        preferences[MONTHLY_EXPENSE] = 0f
+        preferences[MONTHLY_REVENUE] = 0f
+        preferences[DAILY_EXPENSE] = 0f
+        preferences[DAILY_REVENUE] = 0f
+        preferences[DAY_RECORD] = 0
+        preferences[MONTH_RECORD] = 0
+        preferences[BUDGET] = 0f
+    }
+}
