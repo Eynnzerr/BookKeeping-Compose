@@ -41,6 +41,7 @@ import com.eynnzerr.cpbookkeeping_compose.ui.navigation.Destinations
 import com.eynnzerr.cpbookkeeping_compose.ui.navigation.NavGraph
 import com.eynnzerr.cpbookkeeping_compose.ui.navigation.navigateTo
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_Sky
+import com.google.accompanist.insets.systemBarsPadding
 import kotlin.math.roundToInt
 
 private const val TAG = "BasicScreen"
@@ -84,7 +85,8 @@ fun BasicScreen(
                     else -> Unit
                 }
             }
-        }
+        },
+        modifier = Modifier.systemBarsPadding()
     ) {
         NavGraph(
             navController = navController as NavHostController,
@@ -191,7 +193,7 @@ private fun DraggableFloatingButton(
 }
 
 @Composable
-fun FlutterNavigation(navController: NavController, items: List<Screen>){
+private fun FlutterNavigation(navController: NavController, items: List<Screen>){
     //记录点击选择的索引
     val animalCenterIndex = remember { mutableStateOf(0) }
     val animalBoolean = remember { mutableStateOf(true) }
@@ -302,7 +304,7 @@ fun FlutterNavigation(navController: NavController, items: List<Screen>){
 
 //将点击选择进行封装起来。单独处理返回按钮位置和是否旋转。
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
-fun Modifier.modifier(
+private fun Modifier.modifier(
     animalCenterIndex: MutableState<Int>,
     i: Int,
     animalBooleanState: Float

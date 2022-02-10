@@ -1,28 +1,23 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.detail
 
+import android.content.Context
 import android.graphics.Rect
 import android.graphics.Shader
 import android.util.Log
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,11 +26,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.eynnzerr.cpbookkeeping_compose.R
-import com.eynnzerr.cpbookkeeping_compose.data.Bill
+import com.eynnzerr.cpbookkeeping_compose.base.CPApplication
 import com.eynnzerr.cpbookkeeping_compose.data.BillStatistic
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
 import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
+import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_Royal
+import com.eynnzerr.cpbookkeeping_compose.utils.expenseColor
+import com.eynnzerr.cpbookkeeping_compose.utils.revenueColor
 import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.PercentFormatter
@@ -49,9 +49,12 @@ private const val TAG = "DetailScreen"
 
 @Composable
 fun DetailScreen(
-    uiState: DetailUiState
+    uiState: DetailUiState,
+    loadData: (Int) -> Unit,
+    category: MutableState<Int>
 ) {
-    val category by remember { mutableStateOf(-1) }
+    //var category by remember { mutableStateOf(-1) }
+    Log.d(TAG, "DetailScreen: recompose. category:${category.value}")
     Column(
 
     ) {
@@ -79,10 +82,19 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.End
             ) {
                 Button(
-                    onClick = { /*TODO*/ }
+                    onClick = {
+                        if ( category.value == 1) {
+                            category.value = -1
+                            loadData(category.value)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (category.value == -1) Blue_Royal else MaterialTheme.colors.primary,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(
-                        text = stringResource(id = R.string.revenue),
+                        text = stringResource(id = R.string.expense),
                         style = MaterialTheme.typography.body2
                     )
                 }
@@ -94,10 +106,19 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { /*TODO*/ }
+                    onClick = {
+                        if (category.value == -1) {
+                            category.value = 1
+                            loadData(category.value)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = if (category.value == 1) Blue_Royal else MaterialTheme.colors.primary,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(
-                        text = stringResource(id = R.string.expense),
+                        text = stringResource(id = R.string.revenue),
                         style = MaterialTheme.typography.body2
                     )
                 }
@@ -128,7 +149,7 @@ fun DetailScreen(
                 .fillMaxWidth()
                 .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 5.dp)
         ) {
-            MPLineChart(billData = uiState.detailData.lineDataMonthly, category = category)
+            MPLineChart(billData = uiState.detailData.lineDataMonthly, category = category.value)
         }
         Surface(
             elevation = 10.dp,
@@ -136,7 +157,7 @@ fun DetailScreen(
                 .fillMaxWidth()
                 .padding(start = 5.dp, end = 5.dp, top = 10.dp, bottom = 5.dp)
         ) {
-            MPPieChart(billData = uiState.detailData.pieDataMonthly, category = category)
+            MPPieChart(billData = uiState.detailData.pieDataMonthly, category = category.value)
         }
         BillList(bills = uiState.bills, onEdit = {}, onDelete = {})
     }
@@ -362,39 +383,15 @@ private fun randomColor(): Color {
 
 @Composable
 private fun MPLineChart(billData: List<BillStatistic>, category: Int) {
+    Log.d(TAG, "MPLineChart: recompose. category:$category")
     if (billData.isEmpty()) {
         Text(text = stringResource(id = R.string.no_data))
     }
     else {
-        val entries = ArrayList<Entry>().apply {
-            for (statistic in billData) {
-                add(Entry(statistic.mIndex.toFloat(), statistic.mValue))
-            }
-        }
-        val dataSet = LineDataSet(entries, "").apply {
-            //configure...
-            setDrawIcons(false)
-            //enableDashedLine(10f, 5f, 0f)
-            val lineColor = if(category == -1) 0xFFFF5722 else 0xFF03A9F4
-            color = lineColor.toInt()
-            setCircleColor(lineColor.toInt())
-            lineWidth = 1f
-            circleRadius = 3f
-            setDrawCircleHole(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            setDrawFilled(true)
-            fillDrawable = when (category) {
-                -1 -> ContextCompat.getDrawable(LocalContext.current, R.drawable.color_filled_red)
-                1 -> ContextCompat.getDrawable(LocalContext.current, R.drawable.color_filled_blue)
-                else -> ContextCompat.getDrawable(LocalContext.current, R.drawable.color_filled_red)
-            }
-        }
-        val lineData = LineData(dataSet).apply {
-            //configure...
-        }
+        val lineData = genLineData(billData, category, LocalContext.current)
         AndroidView(
             factory = { context ->
-                com.github.mikephil.charting.charts.LineChart(context).apply {
+                LineChart(context).apply {
                     //configure...
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 500)
                     description.isEnabled = false
@@ -423,50 +420,57 @@ private fun MPLineChart(billData: List<BillStatistic>, category: Int) {
                     data = lineData
                     invalidate()
                 }
+            },
+            update = { lineChart ->
+                lineChart.animateXY(500, 500)
+                lineChart.data = genLineData(billData, category, CPApplication.context)
+                lineChart.invalidate()
             }
         )
     }
 }
 
+private fun genLineData(billData: List<BillStatistic>, category: Int, context: Context): LineData {
+    val entries = ArrayList<Entry>().apply {
+        for (statistic in billData) {
+            add(Entry(statistic.mIndex.toFloat(), statistic.mValue))
+        }
+    }
+    val dataSet = LineDataSet(entries, "").apply {
+        //configure...
+        setDrawIcons(false)
+        //enableDashedLine(10f, 5f, 0f)
+        val lineColor = if(category == -1) 0xFFFF5722 else 0xFF03A9F4
+        color = lineColor.toInt()
+        setCircleColor(lineColor.toInt())
+        lineWidth = 1f
+        circleRadius = 3f
+        setDrawCircleHole(false)
+        mode = LineDataSet.Mode.CUBIC_BEZIER
+        setDrawFilled(true)
+        fillDrawable = when (category) {
+            -1 -> ContextCompat.getDrawable(context, R.drawable.color_filled_red)
+            1 -> ContextCompat.getDrawable(context, R.drawable.color_filled_blue)
+            else -> ContextCompat.getDrawable(context, R.drawable.color_filled_red)
+        }
+    }
+    val lineData = LineData(dataSet).apply {
+        //configure...
+    }
+    return lineData
+}
+
 @Composable
 private fun MPPieChart(billData: List<BillStatistic>, category: Int) {
+    Log.d(TAG, "MPPieChart: recompose. category:$category")
     if (billData.isEmpty()) {
         Text(text = stringResource(id = R.string.no_data))
     }
     else {
-        val entries = ArrayList<PieEntry>().apply {
-            for (statistic in billData) {
-                add(PieEntry(statistic.mValue, billTypes[statistic.mIndex]))
-            }
-        }
-        val sliceColors = ArrayList<Int>().apply {
-            val colors = when (category) {
-                -1 -> ColorTemplate.VORDIPLOM_COLORS
-                1 -> ColorTemplate.LIBERTY_COLORS
-                else -> ColorTemplate.MATERIAL_COLORS
-            }
-            for (color in colors) add(color)
-        }
-        val dataSet = PieDataSet(entries, "").apply {
-            colors = sliceColors
-            sliceSpace = 2f
-            selectionShift = 10f
-            valueLineColor = android.graphics.Color.BLACK
-            valueLinePart1OffsetPercentage = 80f
-            valueLinePart1Length = 0.2f
-            valueLinePart2Length = 0.4f
-            xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
-            yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
-        }
-        val pieData = PieData(dataSet).apply {
-            setDrawValues(true)
-            setValueFormatter(PercentFormatter())
-            setValueTextColor(android.graphics.Color.BLACK)
-            setValueTextSize(15f)
-        }
+        val pieData = genPieData(billData, category)
         AndroidView(
             factory = { context ->
-                com.github.mikephil.charting.charts.PieChart(context).apply {
+                PieChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 800)
 
                     setUsePercentValues(true)
@@ -495,9 +499,48 @@ private fun MPPieChart(billData: List<BillStatistic>, category: Int) {
                     highlightValues(null)
                     invalidate()
                 }
+            },
+            update = { pieChart ->
+                pieChart.animateY(500, Easing.EaseInQuad)
+                pieChart.data = genPieData(billData, category)
+                pieChart.invalidate()
             }
         )
     }
+}
+
+private fun genPieData(billData: List<BillStatistic>, category: Int): PieData {
+    val entries = ArrayList<PieEntry>().apply {
+        for (statistic in billData) {
+            add(PieEntry(statistic.mValue, billTypes[statistic.mIndex]))
+        }
+    }
+    val sliceColors = ArrayList<Int>().apply {
+        val colors = when (category) {
+            -1 -> expenseColor
+            1 -> revenueColor
+            else -> expenseColor
+        }
+        for (color in colors) add(color)
+    }
+    val dataSet = PieDataSet(entries, "").apply {
+        colors = sliceColors
+        sliceSpace = 2f
+        selectionShift = 10f
+        valueLineColor = android.graphics.Color.BLACK
+        valueLinePart1OffsetPercentage = 80f
+        valueLinePart1Length = 0.2f
+        valueLinePart2Length = 0.4f
+        xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
+        yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
+    }
+    val pieData = PieData(dataSet).apply {
+        setDrawValues(true)
+        setValueFormatter(PercentFormatter())
+        setValueTextColor(android.graphics.Color.BLACK)
+        setValueTextSize(15f)
+    }
+    return pieData
 }
 
 @Preview(

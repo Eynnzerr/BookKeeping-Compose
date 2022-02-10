@@ -32,12 +32,8 @@ class HomeViewModel @Inject constructor(
     var currentMonth = 0
     var currentYear = 0
 
-    init {
-        updateBills()
-    }
-
     @SuppressLint("NewApi")
-    fun updateBills() {
+    fun loadData() {
         viewModelScope.launch {
             // check if data needs updating.
             val oldDay = getIntData(DAY_RECORD, 0)
@@ -58,11 +54,8 @@ class HomeViewModel @Inject constructor(
                 updateFloatData(0f, MONTHLY_REVENUE)
                 updateIntData(month, MONTH_RECORD)
             }
-
-            _uiState.update { it.copy(homeData = getAllData(0f)) }
-            billRepository.getBillsByDate(LocalDate.now().toString()).collect { bills ->
-                _uiState.update { it.copy(billsToday = bills) }
-            }
+            val bills = billRepository.getBillsByDate(LocalDate.now().toString()).first()
+            _uiState.update { HomeUiState(homeData = getAllData(0f), billsToday = bills) }
         }
     }
 

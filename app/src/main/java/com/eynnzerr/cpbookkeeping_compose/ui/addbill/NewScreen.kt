@@ -30,13 +30,15 @@ import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
 import com.eynnzerr.cpbookkeeping_compose.data.expenseList
 import com.eynnzerr.cpbookkeeping_compose.data.revenueList
-import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_2
+import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_Dark
+import com.google.accompanist.insets.navigationBarsWithImePadding
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.*
 
 
 enum class Sections(@StringRes val titleResId: Int) {
@@ -94,7 +96,8 @@ fun NewScreen(
             Row(
                 modifier = Modifier
                     .padding(top = 30.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .navigationBarsWithImePadding(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
@@ -401,10 +404,13 @@ private fun Calculator(
     onRemarkChange: (String) -> Unit,
     onSubmit: (Bill) ->Unit
 ) {
-    var date by remember { mutableStateOf(LocalDate.now().toString()) } //date 需要
-    var day by remember { mutableStateOf(0) }
-    var month by remember { mutableStateOf(0) }
-    var year by remember { mutableStateOf(0) }
+    val calendar = Calendar.getInstance()
+
+    var date by remember { mutableStateOf(LocalDate.now().toString()) }
+    var day by remember { mutableStateOf(calendar.get(Calendar.DATE)) }
+    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH) + 1) }
+    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+
     val dialogState = rememberMaterialDialogState()
 
     MaterialDialog(
@@ -600,7 +606,7 @@ private fun CalculatorButton(
 ) {
     val interactionState = remember { MutableInteractionSource() }
     val buttonColor = when {
-        interactionState.collectIsPressedAsState().value -> Blue_2
+        interactionState.collectIsPressedAsState().value -> Blue_Dark
         else -> MaterialTheme.colors.primary
     }
     Button(
@@ -624,7 +630,7 @@ private fun CalculatorIconButton(
 ) {
     val interactionState = remember { MutableInteractionSource() }
     val buttonColor = when {
-        interactionState.collectIsPressedAsState().value -> Blue_2
+        interactionState.collectIsPressedAsState().value -> Blue_Dark
         else -> MaterialTheme.colors.primary
     }
     Button(

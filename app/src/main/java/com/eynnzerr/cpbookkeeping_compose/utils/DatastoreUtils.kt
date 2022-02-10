@@ -63,3 +63,9 @@ suspend fun resetAllData() {
         preferences[BUDGET] = 0f
     }
 }
+
+suspend fun setBudget(budget: Float) {
+    context.dataStore.edit { preferences ->
+        preferences[BUDGET] = budget + preferences[BUDGET]!!
+    }
+}

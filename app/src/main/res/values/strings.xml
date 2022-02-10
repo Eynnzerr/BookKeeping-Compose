@@ -13,6 +13,8 @@
     <string name="x">****</string>
     <string name="cancel_new">Cancel</string>
     <string name="expanding">展开账单详细信息…</string>
+    <string name="set_budget">设置本月预算</string>
+    <string name="input_budget">请输入本月预算</string>
 
     <!--NewScreen.kt-->
     <string name="section_new_revenue">收入</string>

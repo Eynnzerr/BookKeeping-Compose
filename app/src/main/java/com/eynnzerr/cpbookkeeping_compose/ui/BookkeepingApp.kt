@@ -18,6 +18,7 @@ import com.eynnzerr.cpbookkeeping_compose.ui.theme.CPBookkeepingcomposeTheme
 fun BookkeepingApp() {
     CPBookkeepingcomposeTheme {
         val navController = rememberNavController()
+
         BasicScreen(
             navController = navController
         )

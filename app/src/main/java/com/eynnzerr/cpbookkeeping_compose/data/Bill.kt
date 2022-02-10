@@ -49,4 +49,9 @@ data class Bill(
         }
         date = LocalDate.now().toString()
     }
+
+    override fun toString(): String {
+        return "Bill(type=$type, amount=$amount, remark='$remark', date='$date', category=$category)"
+    }
+
 }

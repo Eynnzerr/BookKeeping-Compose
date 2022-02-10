@@ -61,12 +61,15 @@ fun BillListWithHeader(
     grouped: Map<String, List<Bill>>,
     listState: LazyListState,
     onEdit: (Bill) -> Unit,
-    onDelete: (Bill) -> Unit
+    onDelete: (Bill) -> Unit,
+    openAnalysis: (Int, Int) -> Unit
 ) {
     LazyColumn(
         state = listState
     ) {
         grouped.forEach { (groupDate, groupBills) ->
+            val month = groupBills[0].month
+            val year = groupBills[0].year
             stickyHeader {
                 Row(
                     modifier = Modifier
@@ -84,7 +87,7 @@ fun BillListWithHeader(
                         text = stringResource(id = R.string.monthly_bills),
                         style = MaterialTheme.typography.body1,
                         color = MaterialTheme.colors.primary,
-                        modifier = Modifier.clickable { /*TODO 打开月账单*/ }
+                        modifier = Modifier.clickable { openAnalysis(month, year) }
                     )
                 }
             }

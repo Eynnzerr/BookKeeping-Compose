@@ -1,8 +1,6 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.navigation
 
-import android.icu.util.Calendar
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyListState
@@ -28,6 +26,7 @@ import com.eynnzerr.cpbookkeeping_compose.ui.detail.DetailViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingScreen
+import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingViewModel
 
 @ExperimentalFoundationApi
 @RequiresApi(Build.VERSION_CODES.O)
@@ -38,7 +37,6 @@ fun NavGraph(
     listState: LazyListState = rememberLazyListState(),
     startDestination: String = Destinations.HOME_ROUTE
 ) {
-    //Obtain each viewModel via Hilt in NavHost and only expose uiState of viewModel to Ui(i.e. composables)
     NavHost(navController = navController, startDestination = "home", route = "root") {
         composable(Destinations.HOME_ROUTE) {
             val homeViewModel: HomeViewModel = hiltViewModel()
@@ -49,10 +47,10 @@ fun NavGraph(
                 uiState = uiState,
                 listState =  listState,
                 openAnalysis = { navController.navigateTo(Destinations.DETAIL_ROUTE + "/$month/$year") },
-                updateBills = { homeViewModel.updateBills() },
+                loadData = { homeViewModel.loadData() },
                 onDeleteBill = { bill ->
                     homeViewModel.deleteBill(bill)
-                    homeViewModel.updateBills()
+                    homeViewModel.loadData()
                 }
             )
         }
@@ -66,11 +64,15 @@ fun NavGraph(
                 onDeleteBill = { bill ->
                     recordViewModel.deleteBill(bill)
                     recordViewModel.updateBills()
-                }
+                },
+                openAnalysis = { month, year ->
+                    navController.navigateTo(Destinations.DETAIL_ROUTE + "/$month/$year") }
             )
         }
         composable(Destinations.SETTING_ROUTE) {
-            SettingScreen()
+            val settingViewModel: SettingViewModel = hiltViewModel()
+            val uiState by settingViewModel.uiState.collectAsState()
+            SettingScreen(uiState = uiState, add = {settingViewModel.add()})
         }
         composable(Destinations.NEW_ROUTE) {
             val newViewModel: NewViewModel = hiltViewModel()
@@ -113,15 +115,20 @@ fun NavGraph(
                 navArgument("year") { type = NavType.IntType }
             )
         ) {
-            //TODO How to pass constructor arguments to HiltViewModel?
+            // How to pass constructor arguments to HiltViewModel?
+            val category = remember { mutableStateOf(-1) }
             val detailViewModel = hiltViewModel<DetailViewModel>().apply {
                 month = it.arguments?.getInt("month")!!
                 year = it.arguments?.getInt("year")!!
-                loadData(-1)
+                loadData(category.value)
             }
             val uiState by detailViewModel.uiState.collectAsState()
             DetailScreen(
-                uiState = uiState
+                uiState = uiState,
+                loadData = { mCategory ->
+                    detailViewModel.loadData(mCategory)
+                },
+                category = category
             )
         }
     }

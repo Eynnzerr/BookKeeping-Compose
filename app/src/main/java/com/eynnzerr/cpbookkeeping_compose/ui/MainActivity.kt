@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.core.view.WindowCompat
+import com.google.accompanist.insets.ProvideWindowInsets
 import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalFoundationApi
@@ -16,8 +18,11 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            BookkeepingApp()
+            ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
+                BookkeepingApp()
+            }
         }
     }
 }

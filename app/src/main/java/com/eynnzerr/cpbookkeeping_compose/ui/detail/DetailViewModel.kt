@@ -1,21 +1,14 @@
 package com.eynnzerr.cpbookkeeping_compose.ui.detail
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.BillRepositoryImpl
-import com.eynnzerr.cpbookkeeping_compose.data.BillStatistic
 import com.eynnzerr.cpbookkeeping_compose.model.DetailData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.*
 import javax.inject.Inject
 
 private const val TAG = "DetailViewModel"
@@ -38,9 +31,11 @@ class DetailViewModel @Inject constructor(
 
     fun loadData(category: Int) {
         viewModelScope.launch {
-            Log.d("DetailViewModel", "loadData: date: $year-$month")
+            Log.d("DetailViewModel", "loadData: date: $year-$month, category:$category")
             val detailData = repository.getDetailData(month, year, category)
             val bills = repository.getBillsByMonthYear(month, year, category).first()
+            //for (bill in bills) Log.d(TAG, "loadData: bill:$bill")
+            for (x in detailData.lineDataMonthly) Log.d(TAG, "loadData: statistic:$x")
             _uiState.update { DetailUiState(
                 detailData = detailData,
                 bills = bills,

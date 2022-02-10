@@ -8,5 +8,6 @@ val Purple700 = Color(0xFF3700B3)
 val Teal200 = Color(0xFF03DAC5)
 
 val Blue_Sky = Color(0xFF00BFFF)
-val Blue_Dogger = Color(0xFF1E90FF)
-val Blue_2 = Color(0xFF3333CC)
+val Blue_Dodger = Color(0xFF1E90FF)
+val Blue_Dark = Color(0xFF3333CC)
+val Blue_Royal = Color(0xFF4169E1)
