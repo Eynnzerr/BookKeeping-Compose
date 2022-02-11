@@ -17,11 +17,14 @@ interface BillDao {
     @Query("SELECT * FROM bills WHERE year = :year AND category = :category")
     fun getBillsByYear(year: Int, category: Int): Flow<List<Bill>>
 
-    @Query("SELECT * FROM bills WHERE category = -1")
+    @Query("SELECT * FROM bills WHERE id = :id")
+    suspend fun getBillById(id: Int): Bill
+
+    /*@Query("SELECT * FROM bills WHERE category = -1")
     suspend fun getExpenses(): List<Bill>
 
     @Query("SELECT * FROM bills WHERE category = 1")
-    suspend fun getRevenues(): List<Bill>
+    suspend fun getRevenues(): List<Bill>*/
 
     @Insert
     suspend fun insertBills(vararg bill: Bill)

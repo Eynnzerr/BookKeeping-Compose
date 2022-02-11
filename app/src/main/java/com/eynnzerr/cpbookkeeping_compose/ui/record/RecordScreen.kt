@@ -19,7 +19,8 @@ fun RecordScreen(
     listState: LazyListState,
     updateBills: () -> Unit,
     onDeleteBill: (Bill) -> Unit,
-    openAnalysis: (Int, Int) -> Unit
+    openAnalysis: (Int, Int) -> Unit,
+    openDisplay: (Bill) -> Unit
 ) {
     updateBills()
     Column {
@@ -29,7 +30,8 @@ fun RecordScreen(
             listState = listState,
             onEdit = {/*TODO*/},
             onDelete = onDeleteBill,
-            openAnalysis = openAnalysis
+            openAnalysis = openAnalysis,
+            openDisplay = openDisplay
         )
     }
 }

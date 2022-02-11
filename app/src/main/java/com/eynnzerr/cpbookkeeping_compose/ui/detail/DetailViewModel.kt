@@ -31,7 +31,7 @@ class DetailViewModel @Inject constructor(
 
     fun loadData(category: Int) {
         viewModelScope.launch {
-            Log.d("DetailViewModel", "loadData: date: $year-$month, category:$category")
+            //Log.d("DetailViewModel", "loadData: date: $year-$month, category:$category")
             val detailData = repository.getDetailData(month, year, category)
             val bills = repository.getBillsByMonthYear(month, year, category).first()
             //for (bill in bills) Log.d(TAG, "loadData: bill:$bill")

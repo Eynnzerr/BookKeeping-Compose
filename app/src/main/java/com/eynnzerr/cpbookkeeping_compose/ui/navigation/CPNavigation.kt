@@ -9,6 +9,7 @@ object Destinations {
     const val SETTING_ROUTE = "setting"
     const val NEW_ROUTE = "new"
     const val DETAIL_ROUTE = "detail"
+    const val DISPLAY_ROUTE = "display"
 }
 
 class NavActions(navController: NavController) {
@@ -50,6 +51,13 @@ fun NavController.navigateTo(route: String) {
         popUpTo(graph.findStartDestination().id) {
             saveState = true
         }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+fun NavController.navigateToSingle(route: String) {
+    navigate(route) {
         launchSingleTop = true
         restoreState = true
     }

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,13 +32,19 @@ fun BillList(
     bills: List<Bill>,
     listState: LazyListState,
     onEdit: (Bill) -> Unit,
-    onDelete: (Bill) -> Unit
+    onDelete: (Bill) -> Unit,
+    openDisplay: (Bill) -> Unit
 ) {
     LazyColumn(
         state = listState
     ) {
         items(bills) { bill ->
-            BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
+            BillCard(
+                bill = bill,
+                onEdit = onEdit,
+                onDelete = onDelete,
+                openDisplay = openDisplay
+            )
         }
     }
 }
@@ -46,11 +53,17 @@ fun BillList(
 fun BillList(
     bills: List<Bill>,
     onEdit: (Bill) -> Unit,
-    onDelete: (Bill) -> Unit
+    onDelete: (Bill) -> Unit,
+    openDisplay: (Bill) -> Unit
 ) {
     LazyColumn {
         items(bills) { bill ->
-            BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
+            BillCard(
+                bill = bill,
+                onEdit = onEdit,
+                onDelete = onDelete,
+                openDisplay = openDisplay
+            )
         }
     }
 }
@@ -62,7 +75,8 @@ fun BillListWithHeader(
     listState: LazyListState,
     onEdit: (Bill) -> Unit,
     onDelete: (Bill) -> Unit,
-    openAnalysis: (Int, Int) -> Unit
+    openAnalysis: (Int, Int) -> Unit,
+    openDisplay: (Bill) -> Unit
 ) {
     LazyColumn(
         state = listState
@@ -92,14 +106,24 @@ fun BillListWithHeader(
                 }
             }
             items(groupBills) { bill ->
-                BillCard(bill = bill, onEdit = onEdit, onDelete = onDelete)
+                BillCard(
+                    bill = bill,
+                    onEdit = onEdit,
+                    onDelete = onDelete,
+                    openDisplay = openDisplay
+                )
             }
         }
     }
 }
 
 @Composable
-fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
+fun BillCard(
+    bill: Bill,
+    onEdit: (Bill) -> Unit,
+    onDelete: (Bill) -> Unit,
+    openDisplay: (Bill) -> Unit
+) {
     val tintColor = if(bill.category == -1) Color.Red else Color.Blue
     var isDialogShown by remember { mutableStateOf(false) }
     if (isDialogShown) {
@@ -121,7 +145,9 @@ fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
                     onClick = {
                     onEdit(bill)
                     isDialogShown = false
-                }) {
+                    },
+                    elevation = ButtonDefaults.elevation(0.dp)
+                ) {
                     Icon(
                         imageVector =  Icons.Filled.Edit,
                         contentDescription = null,
@@ -144,7 +170,9 @@ fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
                     onClick = {
                     onDelete(bill)
                     isDialogShown = false
-                }) {
+                    },
+                    elevation = ButtonDefaults.elevation(0.dp)
+                ) {
                     Icon(
                         imageVector =  Icons.Filled.Delete,
                         contentDescription = null,
@@ -168,7 +196,7 @@ fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
             .padding(horizontal = 5.dp, vertical = 3.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onPress = {},
+                    onTap = { openDisplay(bill) },
                     onLongPress = { isDialogShown = true }
                 )
             }
@@ -216,6 +244,81 @@ fun BillCard(bill: Bill, onEdit: (Bill) -> Unit,onDelete: (Bill) -> Unit) {
 }
 
 @Composable
+fun ReadOnlyBillCard(bill: Bill) {
+    val tintColor = if(bill.category == -1) Color.Red else Color.Blue
+    Surface(
+        color = MaterialTheme.colors.surface,
+        shape = RoundedCornerShape(10.dp),
+        elevation = 10.dp,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(all = 8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = bill.type),
+                        contentDescription = null,
+                        tint = tintColor
+                    )
+                    Spacer(modifier = Modifier.padding(horizontal = 5.dp))
+                    Text(
+                        text = billTypes[bill.type]!!,
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+                Text(
+                    text = "¥" + String.format("%.2f", bill.amount),
+                    style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.End
+                )
+            }
+            Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(id = R.string.date),
+                    style = MaterialTheme.typography.body2,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = bill.date,
+                    style = MaterialTheme.typography.body2
+                )
+            }
+            Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
+            Text(
+                text = stringResource(id = R.string.remark),
+                style = MaterialTheme.typography.body2,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp, start = 8.dp, bottom = 4.dp)
+            )
+            Text(
+                text = bill.remark,
+                style = MaterialTheme.typography.body2,
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember(this) { mutableStateOf(firstVisibleItemIndex) }
     var previousScrollOffset by remember(this) { mutableStateOf(firstVisibleItemScrollOffset) }
@@ -234,7 +337,7 @@ fun LazyListState.isScrollingUp(): Boolean {
 }
 
 @Preview(
-    name = "BalanceSurface",
+    name = "BillCard",
     showBackground = true
 )
 @Composable
@@ -244,5 +347,21 @@ private fun PreviewBillCard() {
         category = -1,
         date = "2022-01-31"
     )
-    BillCard(bill = bill, onEdit = {}, onDelete = {})
+    BillCard(bill = bill, onEdit = {}, onDelete = {}, openDisplay = {})
+}
+
+@Preview(
+    name = "ReadOnlyCard",
+    showBackground = true
+)
+@Composable
+private fun PreviewReadOnlyCard() {
+    val bill = Bill(
+        type = R.drawable.type_other,
+        category = -1,
+        date = "2022-01-31",
+        amount = 66.66f,
+        remark = "嘉然，我真的好喜欢你啊，Mua！为了你，我要，我要，我要鸿儒阿草捏"
+    )
+    ReadOnlyBillCard(bill = bill)
 }

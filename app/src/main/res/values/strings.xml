@@ -7,7 +7,7 @@
     <string name="no_expenses">暂无支出</string>
     <string name="no_revenue">暂无收入</string>
     <string name="remained_budget">剩余预算</string>
-    <string name="visulized_analysis">可视化分析</string>
+    <string name="visualized_analysis">可视化分析</string>
     <string name="daily_expenses">今日支出</string>
     <string name="daily_revenue">今日收入</string>
     <string name="x">****</string>
@@ -26,7 +26,7 @@
     <string name="new_bar_title">新建账单</string>
 
     <!--DetailScreen.kt-->
-    <string name="detail_bar_title">账单详情</string>
+    <string name="detail_bar_title">账单分析</string>
     <string name="no_data">暂无数据…</string>
     <string name="switch_my">切换年-月</string>
     <string name="expense">支出</string>
@@ -36,4 +36,9 @@
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
     <string name="monthly_bills">"查看月账单</string>
+    <string name="date">日期</string>
+    <string name="remark">备注</string>
+
+    <!--DisplayScreen.kt-->
+    <string name="display_bar_title">详情</string>
 </resources>

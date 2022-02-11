@@ -57,6 +57,7 @@ fun BasicScreen(
     val items = listOf(Screen.Home, Screen.Record, Screen.Setting)
     val listState = rememberLazyListState()
     val currentScreen = navController.currentScreen()
+    val animalCenterIndex = remember { mutableStateOf(0) }
     Scaffold(
         topBar = {
             //Change according to currentScreen in composable.
@@ -81,7 +82,7 @@ fun BasicScreen(
                 when(currentScreen.value) {
                     Destinations.HOME_ROUTE,
                     Destinations.RECORD_ROUTE,
-                    Destinations.SETTING_ROUTE -> FlutterNavigation(navController = navController, items)
+                    Destinations.SETTING_ROUTE -> FlutterNavigation(navController, animalCenterIndex, items)
                     else -> Unit
                 }
             }
@@ -125,7 +126,7 @@ private fun CPTopBar(currentScreen: State<String>, onArrowBack: () -> Unit) {
                         contentDescription = null
                     )
                 }
-            }
+            },
         )
         Destinations.NEW_ROUTE -> TopAppBar(
             title = {
@@ -156,6 +157,19 @@ private fun CPTopBar(currentScreen: State<String>, onArrowBack: () -> Unit) {
                 IconButton(onClick = { /*TODO open calendar*/ }) {
                     Icon(
                         imageVector = Icons.Filled.CalendarViewMonth,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+        Destinations.DISPLAY_ROUTE -> TopAppBar(
+            title = {
+                Text(text = stringResource(id = R.string.display_bar_title))
+            },
+            navigationIcon = {
+                IconButton(onClick = { onArrowBack() }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
                         contentDescription = null
                     )
                 }
@@ -193,9 +207,9 @@ private fun DraggableFloatingButton(
 }
 
 @Composable
-private fun FlutterNavigation(navController: NavController, items: List<Screen>){
+private fun FlutterNavigation(navController: NavController, animalCenterIndex: MutableState<Int>, items: List<Screen>){
     //记录点击选择的索引
-    val animalCenterIndex = remember { mutableStateOf(0) }
+    //val animalCenterIndex = remember { mutableStateOf(0) }
     val animalBoolean = remember { mutableStateOf(true) }
     val animalBooleanState: Float by animateFloatAsState(
         if (animalBoolean.value) {
@@ -335,6 +349,9 @@ private fun NavController.currentScreen(): State<String> {
                 }
                 destination.hierarchy.any { it.route!!.startsWith(Destinations.DETAIL_ROUTE) } -> {
                     currentScreen.value = Destinations.DETAIL_ROUTE
+                }
+                destination.hierarchy.any { it.route!!.startsWith(Destinations.DISPLAY_ROUTE) } -> {
+                    currentScreen.value = Destinations.DISPLAY_ROUTE
                 }
                 else -> currentScreen.value = Destinations.HOME_ROUTE
             }

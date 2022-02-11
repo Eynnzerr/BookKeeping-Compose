@@ -38,7 +38,8 @@ fun HomeScreen(
     listState: LazyListState,
     openAnalysis: () -> Unit,
     loadData: () -> Unit,
-    onDeleteBill: (Bill) -> Unit
+    onDeleteBill: (Bill) -> Unit,
+    openDisplay: (Bill) -> Unit
 ) {
     loadData()
     Column() {
@@ -58,7 +59,8 @@ fun HomeScreen(
             bills = uiState.billsToday,
             listState = listState,
             onEdit = {/*TODO 转到编辑页面，可以复用TabContent*/},
-            onDelete = { bill -> onDeleteBill(bill) }
+            onDelete = { bill -> onDeleteBill(bill) },
+            openDisplay = openDisplay
         )
     }
 }
@@ -96,7 +98,7 @@ fun BalanceSurface(
                         style = MaterialTheme.typography.body1,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
                     )
                     TextField(
                         value = preBudget,
@@ -259,7 +261,7 @@ fun BalanceSurface(
                     )
                     Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
                     Text(
-                        text = stringResource(id = R.string.visulized_analysis),
+                        text = stringResource(id = R.string.visualized_analysis),
                         style = MaterialTheme.typography.body2
                     )
                 }

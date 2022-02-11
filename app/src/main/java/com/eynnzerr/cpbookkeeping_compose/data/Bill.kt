@@ -6,9 +6,9 @@ import android.os.Parcelable
 import androidx.annotation.RequiresApi
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.eynnzerr.cpbookkeeping_compose.R
 import kotlinx.android.parcel.Parcelize
 import java.time.LocalDate
-import java.util.*
 
 /**
  * id: primary key in database
@@ -23,7 +23,7 @@ import java.util.*
 data class Bill(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
-    var type: Int = 0,
+    var type: Int = R.drawable.type_other,
     var amount: Float = 0f,
     var remark: String = "",
     var day: Int = 0,
@@ -55,3 +55,18 @@ data class Bill(
     }
 
 }
+
+/*
+class BillNavType : NavType<Bill>(isNullableAllowed = false) {
+    override fun get(bundle: Bundle, key: String): Bill? {
+        return bundle.getParcelable(key)
+    }
+
+    override fun parseValue(value: String): Bill {
+        return GsonUtils.getInstance().fromJson(value, Bill::class.java)
+    }
+
+    override fun put(bundle: Bundle, key: String, value: Bill) {
+        bundle.putParcelable(key, value)
+    }
+}*/

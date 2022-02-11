@@ -44,6 +44,11 @@ class BillRepositoryImpl @Inject constructor() : BillRepository {
     fun getMonthSumFlowByType(year: Int, category: Int) = billDao.getMonthSumByType(year, category)
 
     /**
+     * get single bill via id for detail information.
+     */
+    suspend fun getBillById(id: Int) = billDao.getBillById(id)
+
+    /**
      * collect all data that DetailScreen needs one-time and wrap them as DetailData.
      */
     suspend fun getDetailData(month: Int, year: Int, category: Int): DetailData {

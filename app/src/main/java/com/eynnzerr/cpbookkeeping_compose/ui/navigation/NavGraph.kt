@@ -23,6 +23,8 @@ import com.eynnzerr.cpbookkeeping_compose.ui.addbill.NewViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.addbill.rememberTabContent
 import com.eynnzerr.cpbookkeeping_compose.ui.detail.DetailScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.detail.DetailViewModel
+import com.eynnzerr.cpbookkeeping_compose.ui.display.DisplayScreen
+import com.eynnzerr.cpbookkeeping_compose.ui.display.DisplayViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingScreen
@@ -51,6 +53,9 @@ fun NavGraph(
                 onDeleteBill = { bill ->
                     homeViewModel.deleteBill(bill)
                     homeViewModel.loadData()
+                },
+                openDisplay = { bill ->
+                    navController.navigateToSingle(Destinations.DISPLAY_ROUTE + "/${bill.id}")
                 }
             )
         }
@@ -66,7 +71,10 @@ fun NavGraph(
                     recordViewModel.updateBills()
                 },
                 openAnalysis = { month, year ->
-                    navController.navigateTo(Destinations.DETAIL_ROUTE + "/$month/$year") }
+                    navController.navigateTo(Destinations.DETAIL_ROUTE + "/$month/$year") },
+                openDisplay = { bill ->
+                    navController.navigateToSingle(Destinations.DISPLAY_ROUTE + "/${bill.id}")
+                }
             )
         }
         composable(Destinations.SETTING_ROUTE) {
@@ -128,8 +136,23 @@ fun NavGraph(
                 loadData = { mCategory ->
                     detailViewModel.loadData(mCategory)
                 },
-                category = category
+                category = category,
+                openDisplay = { bill ->
+                    navController.navigateToSingle(Destinations.DISPLAY_ROUTE + "/${bill.id}")
+                }
             )
+        }
+        composable(
+            route = Destinations.DISPLAY_ROUTE + "/{billId}",
+            arguments = listOf(
+                navArgument("billId") { type = NavType.IntType }
+            )
+        ) {
+            val displayViewModel: DisplayViewModel = hiltViewModel()
+            val id = it.arguments?.getInt("billId")!!
+            displayViewModel.loadBillById(id)
+            val bill by displayViewModel.billState.collectAsState()
+            DisplayScreen(bill = bill)
         }
     }
 }

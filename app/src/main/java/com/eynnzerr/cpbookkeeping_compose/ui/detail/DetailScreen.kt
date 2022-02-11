@@ -27,6 +27,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.eynnzerr.cpbookkeeping_compose.R
 import com.eynnzerr.cpbookkeeping_compose.base.CPApplication
+import com.eynnzerr.cpbookkeeping_compose.data.Bill
 import com.eynnzerr.cpbookkeeping_compose.data.BillStatistic
 import com.eynnzerr.cpbookkeeping_compose.data.billTypes
 import com.eynnzerr.cpbookkeeping_compose.ui.basic.BillList
@@ -42,19 +43,17 @@ import com.github.mikephil.charting.formatter.PercentFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import kotlin.random.Random
 
-// 首先获取本月度总支出与总收入，对当前月的数据求和即可。
-// 接着，依次获取本月度各个天数的总支出、总收入，随同天数一起传给LineChart
-// 接着，获取本月度各类型收入/支出的总和，随同类型一起传给PieChart
 private const val TAG = "DetailScreen"
 
 @Composable
 fun DetailScreen(
     uiState: DetailUiState,
     loadData: (Int) -> Unit,
-    category: MutableState<Int>
+    category: MutableState<Int>,
+    openDisplay: (Bill) -> Unit
 ) {
     //var category by remember { mutableStateOf(-1) }
-    Log.d(TAG, "DetailScreen: recompose. category:${category.value}")
+    //Log.d(TAG, "DetailScreen: recompose. category:${category.value}")
     Column(
 
     ) {
@@ -159,7 +158,7 @@ fun DetailScreen(
         ) {
             MPPieChart(billData = uiState.detailData.pieDataMonthly, category = category.value)
         }
-        BillList(bills = uiState.bills, onEdit = {}, onDelete = {})
+        BillList(bills = uiState.bills, onEdit = {}, onDelete = {}, openDisplay = openDisplay)
     }
 }
 
@@ -383,7 +382,7 @@ private fun randomColor(): Color {
 
 @Composable
 private fun MPLineChart(billData: List<BillStatistic>, category: Int) {
-    Log.d(TAG, "MPLineChart: recompose. category:$category")
+    //Log.d(TAG, "MPLineChart: recompose. category:$category")
     if (billData.isEmpty()) {
         Text(text = stringResource(id = R.string.no_data))
     }
@@ -462,7 +461,7 @@ private fun genLineData(billData: List<BillStatistic>, category: Int, context: C
 
 @Composable
 private fun MPPieChart(billData: List<BillStatistic>, category: Int) {
-    Log.d(TAG, "MPPieChart: recompose. category:$category")
+    //Log.d(TAG, "MPPieChart: recompose. category:$category")
     if (billData.isEmpty()) {
         Text(text = stringResource(id = R.string.no_data))
     }
