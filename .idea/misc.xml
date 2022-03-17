@@ -82,9 +82,12 @@
         <entry key="app/src/main/res/drawable/color_filled_blue.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/color_filled_red.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_logo.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_splash.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/type_bus.xml" value="0.29907407407407405" />
         <entry key="app/src/main/res/drawable/type_communication.xml" value="0.2861111111111111" />
         <entry key="app/src/main/res/drawable/type_income.xml" value="0.2861111111111111" />
+        <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1" />
       </map>
     </option>
   </component>

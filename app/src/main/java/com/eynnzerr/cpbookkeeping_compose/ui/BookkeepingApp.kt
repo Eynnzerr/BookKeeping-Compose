@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.rememberNavController
 import com.eynnzerr.cpbookkeeping_compose.ui.basic.BasicScreen
@@ -21,6 +22,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 @ExperimentalAnimationApi
 @Composable
 fun BookkeepingApp() {
+    val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
     val useDarkIcons = MaterialTheme.colors.isLight
     SideEffect {
@@ -33,7 +35,8 @@ fun BookkeepingApp() {
     CPBookkeepingcomposeTheme {
         val navController = rememberNavController()
         BasicScreen(
-            navController = navController
+            navController = navController,
+            coroutineScope = coroutineScope
         )
     }
 }

@@ -8,6 +8,9 @@ interface BillDao {
     @Query("SELECT * FROM bills")
     fun getAllBills(): Flow<List<Bill>>
 
+/*    @Query("SELECT * FROM bills WHERE ")
+    fun getBillsByKeyWord(): Flow<List<Bill>>*/
+
     @Query("SELECT * FROM bills WHERE date = :date")
     fun getBillsByDate(date: String): Flow<List<Bill>>
 

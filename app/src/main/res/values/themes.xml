@@ -22,4 +22,11 @@
     <style name="Theme.CPBookkeepingcompose.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.CPBookkeepingcompose.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!--Splash Screen-->
+    <style name="Theme.CPBookkeepingcompose.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.CPBookkeepingcompose.NoActionBar</item>
+    </style>
 </resources>

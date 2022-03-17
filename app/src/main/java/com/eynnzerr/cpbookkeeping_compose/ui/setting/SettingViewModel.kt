@@ -3,8 +3,10 @@ package com.eynnzerr.cpbookkeeping_compose.ui.setting
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.eynnzerr.cpbookkeeping_compose.utils.NEED_FINGERPRINT
+import com.eynnzerr.cpbookkeeping_compose.utils.getBoolData
+import com.eynnzerr.cpbookkeeping_compose.utils.updateBoolData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -14,22 +16,29 @@ import javax.inject.Inject
 private const val TAG = "SettingViewModel"
 
 data class SettingUiState(
-    var count: Int,
-    var msg: String
+    val fingerEnabled: Boolean
 )
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
 
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SettingUiState(0, "init"))
+    private val _uiState = MutableStateFlow(SettingUiState(false))
     val uiState: StateFlow<SettingUiState> = _uiState
 
-    fun add() {
+    // initialize fingerPrint option through dataStore.
+    init {
         viewModelScope.launch {
-            delay(1000)
-            _uiState.update { state -> SettingUiState(state.count + 1, "last:${state.count}") }
-            Log.d(TAG, "add: value=${_uiState.value.count}")
+            val needFingerPrint = getBoolData(NEED_FINGERPRINT, false)
+            _uiState.update { SettingUiState(needFingerPrint) }
+        }
+    }
+
+    fun modifyFingerOption(enableFinger: Boolean) {
+        Log.d(TAG, "modifyFingerOption: $enableFinger")
+        viewModelScope.launch {
+            updateBoolData(enableFinger, NEED_FINGERPRINT)
+            _uiState.update { SettingUiState(enableFinger) }
         }
     }
 }

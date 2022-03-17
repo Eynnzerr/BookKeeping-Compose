@@ -1,5 +1,14 @@
 <resources>
     <string name="app_name">CPKeeping</string>
+    <!--BasicScreen.kt-->
+    <string name="drawer_text1">版本</string>
+    <string name="drawer_text2">关于应用</string>
+    <string name="about_app">这是我用来练习jetpack compose而开发的练手小项目。又由于自己和家人都有记账的需求，故写了这个简单的小应用。</string>
+    <string name="drawer_text3">关于开发者</string>
+    <string name="about_me">华中科技大学(HUST)电信学院本科生，UniqueStudio Android组成员， 躺平摆烂的大学生</string>
+    <string name="github_address">我的Github主页: https://github.com/Eynnzerr</string>
+    <string name="blog_address">我的博客主页: eynnzerr.games</string>
+    <string name="email">邮箱联系：eynnzerr@gmail.com</string>
 
     <!--HomeScreen.kt-->
     <string name="monthly_expenses">本月支出</string>
@@ -41,4 +50,9 @@
 
     <!--DisplayScreen.kt-->
     <string name="display_bar_title">详情</string>
+
+    <!--SettingScreen.kt-->
+    <string name="enable_fingerprint">开启指纹解锁</string>
+    <string name="positive_toast_text">已开启指纹解锁，将在下次应用后生效</string>
+    <string name="negative_toast_text">已关闭指纹解锁，将在下次应用后生效</string>
 </resources>

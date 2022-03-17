@@ -69,7 +69,7 @@ class TabContent(val section: Sections, val content: @Composable () -> Unit)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NewScreen(
-    scaffoldState: BottomSheetScaffoldState,
+    sheetState: ModalBottomSheetState,
     scope: CoroutineScope,
     remark: String,
     tabContent: List<TabContent>,
@@ -77,7 +77,68 @@ fun NewScreen(
     onTabChange: (Sections) -> Unit,
     onRemarkChange: (String) -> Unit
 ) {
-    BottomSheetScaffold(
+    ModalBottomSheetLayout(
+        sheetState = sheetState,
+        sheetContent = {
+            TextField(
+                value = remark,
+                onValueChange = { onRemarkChange(it) },
+                label = { Text(text = stringResource(id = R.string.add_remark)) },
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    disabledTextColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                )
+            )
+            Row(
+                modifier = Modifier
+                    .padding(top = 30.dp)
+                    .fillMaxWidth()
+                    .navigationBarsWithImePadding(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    shape = RoundedCornerShape(size = 5.dp),
+                    onClick = {
+                        scope.launch {
+                            onRemarkChange("添加备注")
+                            sheetState.hide()
+                        }
+                    }) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = stringResource(id = R.string.btn_cancel))
+                }
+                Button(
+                    shape = RoundedCornerShape(size = 5.dp),
+                    onClick = {
+                        scope.launch {
+                            sheetState.hide()
+                        }
+                    }) {
+                    Icon(
+                        imageVector = Icons.Filled.Done,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = stringResource(id = R.string.btn_confirm))
+                }
+            }
+    }) {
+        NewScreenContent(
+            currentSection = currentSection,
+            updateSection = onTabChange,
+            tabContent = tabContent
+        )
+    }
+    /*BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
@@ -133,15 +194,13 @@ fun NewScreen(
                 }
             }
         }
-    ) { innerPadding ->
-        val screenModifier = Modifier.padding(innerPadding)
+    ) {
         NewScreenContent(
             currentSection = currentSection,
             updateSection = onTabChange,
-            tabContent = tabContent,
-            modifier = screenModifier
+            tabContent = tabContent
         )
-    }
+    }*/
 }
 
 /**
@@ -151,7 +210,7 @@ fun NewScreen(
 @ExperimentalMaterialApi
 @Composable
 fun rememberTabContent(
-    scaffoldState: BottomSheetScaffoldState,
+    sheetState: ModalBottomSheetState,
     scope: CoroutineScope,
     expenseState: TabState,
     revenueState: TabState,
@@ -165,7 +224,7 @@ fun rememberTabContent(
     val expenseSection = TabContent(Sections.NewExpense) {
         TabWithSections(
             category = -1,
-            scaffoldState = scaffoldState,
+            sheetState = sheetState,
             scope = scope,
             tabState = expenseState,
             onUpdate = onUpdate,
@@ -178,7 +237,7 @@ fun rememberTabContent(
     val revenueSection = TabContent(Sections.NewRevenue) {
         TabWithSections(
             category = 1,
-            scaffoldState = scaffoldState,
+            sheetState = sheetState,
             scope = scope,
             tabState = revenueState,
             onUpdate = onUpdate,
@@ -273,7 +332,7 @@ private fun TabWithSections(
     remark: String,
     tabState: TabState,
     onUpdate: (Int, String, Int) -> Unit,
-    scaffoldState: BottomSheetScaffoldState,
+    sheetState: ModalBottomSheetState,
     scope: CoroutineScope,
     onRemarkChange: (String) -> Unit,
     onSubmit: (Bill) -> Unit
@@ -297,7 +356,7 @@ private fun TabWithSections(
             onAmountChange = {amount -> onUpdate(category, amount, tabState.selectedIndex)},// only modify amount
             amountBuilder = amountBuilder,
             remark = remark,
-            scaffoldState = scaffoldState,
+            sheetState = sheetState,
             scope = scope,
             onRemarkChange = onRemarkChange,
             onSubmit = onSubmit
@@ -399,7 +458,7 @@ private fun Calculator(
     onAmountChange: (String) -> Unit,
     amountBuilder: StringBuilder,
     remark: String,
-    scaffoldState: BottomSheetScaffoldState,
+    sheetState: ModalBottomSheetState,
     scope: CoroutineScope,
     onRemarkChange: (String) -> Unit,
     onSubmit: (Bill) ->Unit
@@ -445,7 +504,7 @@ private fun Calculator(
                 TextButton(onClick = {
                     if(remark == "添加备注") onRemarkChange("")
                     scope.launch {
-                        scaffoldState.bottomSheetState.expand()
+                        sheetState.show()
                     }
                 }) {
                     Text(text = remark)

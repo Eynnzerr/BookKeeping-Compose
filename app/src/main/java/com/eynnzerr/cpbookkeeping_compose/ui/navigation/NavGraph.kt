@@ -6,7 +6,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,6 +31,7 @@ import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.record.RecordViewModel
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingScreen
 import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingViewModel
+import kotlinx.coroutines.CoroutineScope
 
 @ExperimentalFoundationApi
 @RequiresApi(Build.VERSION_CODES.O)
@@ -37,7 +40,8 @@ import com.eynnzerr.cpbookkeeping_compose.ui.setting.SettingViewModel
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
     listState: LazyListState = rememberLazyListState(),
-    startDestination: String = Destinations.HOME_ROUTE
+    startDestination: String = Destinations.HOME_ROUTE,
+    coroutineScope: CoroutineScope
 ) {
     NavHost(navController = navController, startDestination = "home", route = "root") {
         composable(Destinations.HOME_ROUTE) {
@@ -71,7 +75,7 @@ fun NavGraph(
                     recordViewModel.updateBills()
                 },
                 openAnalysis = { month, year ->
-                    navController.navigateTo(Destinations.DETAIL_ROUTE + "/$month/$year") },
+                    navController.navigateToSingle(Destinations.DETAIL_ROUTE + "/$month/$year") },
                 openDisplay = { bill ->
                     navController.navigateToSingle(Destinations.DISPLAY_ROUTE + "/${bill.id}")
                 }
@@ -80,7 +84,10 @@ fun NavGraph(
         composable(Destinations.SETTING_ROUTE) {
             val settingViewModel: SettingViewModel = hiltViewModel()
             val uiState by settingViewModel.uiState.collectAsState()
-            SettingScreen(uiState = uiState, add = {settingViewModel.add()})
+            SettingScreen(
+                uiState = uiState,
+                onFingerOptionChanged = { settingViewModel.modifyFingerOption(it) }
+            )
         }
         composable(Destinations.NEW_ROUTE) {
             val newViewModel: NewViewModel = hiltViewModel()
@@ -88,11 +95,11 @@ fun NavGraph(
             val expenseState by newViewModel.exTabState.collectAsState()
             val revenueState by newViewModel.reTabState.collectAsState()
 
-            val scaffoldState = rememberBottomSheetScaffoldState()
-            val scope = rememberCoroutineScope()
+            //val scaffoldState = rememberBottomSheetScaffoldState()
+            val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
             val tabContent = rememberTabContent(
-                scaffoldState = scaffoldState,
-                scope = scope,
+                sheetState = sheetState,
+                scope = coroutineScope,
                 expenseState = expenseState,
                 revenueState = revenueState,
                 onUpdate = {category, amount, selectedIndex -> newViewModel.updateTab(category, amount, selectedIndex)},
@@ -107,8 +114,8 @@ fun NavGraph(
                 mutableStateOf(tabContent.first().section)
             }
             NewScreen(
-                scaffoldState = scaffoldState,
-                scope = scope,
+                sheetState = sheetState,
+                scope = coroutineScope,
                 remark = remark,
                 tabContent = tabContent,
                 currentSection = currentSection,

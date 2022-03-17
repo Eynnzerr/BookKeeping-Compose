@@ -8,6 +8,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,9 +30,11 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -41,7 +45,10 @@ import com.eynnzerr.cpbookkeeping_compose.ui.navigation.Destinations
 import com.eynnzerr.cpbookkeeping_compose.ui.navigation.NavGraph
 import com.eynnzerr.cpbookkeeping_compose.ui.navigation.navigateTo
 import com.eynnzerr.cpbookkeeping_compose.ui.theme.Blue_Sky
+import com.eynnzerr.cpbookkeeping_compose.utils.getVersionCode
 import com.google.accompanist.insets.systemBarsPadding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private const val TAG = "BasicScreen"
@@ -51,19 +58,27 @@ private const val TAG = "BasicScreen"
 @ExperimentalAnimationApi
 @Composable
 fun BasicScreen(
-    navController: NavController
+    navController: NavController,
+    coroutineScope: CoroutineScope
 ) {
     //items for BottomNavigation. Changes to the size of list is not recommended.
+    val scaffoldState = rememberScaffoldState()
     val items = listOf(Screen.Home, Screen.Record, Screen.Setting)
     val listState = rememberLazyListState()
     val currentScreen = navController.currentScreen()
     val animalCenterIndex = remember { mutableStateOf(0) }
     Scaffold(
+        scaffoldState = scaffoldState,
         topBar = {
             //Change according to currentScreen in composable.
             CPTopBar(
                 currentScreen = currentScreen,
-                onArrowBack = { navController.popBackStack() }
+                onArrowBack = { navController.popBackStack() },
+                openDrawer = {
+                    coroutineScope.launch {
+                        scaffoldState.drawerState.open()
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -78,7 +93,9 @@ fun BasicScreen(
         },
         bottomBar = {
             //only show up when it's HOME, RECORD, SETTING screens.
-            AnimatedVisibility(listState.isScrollingUp()) {
+            AnimatedVisibility(
+                visible = listState.isScrollingUp()
+            ) {
                 when(currentScreen.value) {
                     Destinations.HOME_ROUTE,
                     Destinations.RECORD_ROUTE,
@@ -87,11 +104,64 @@ fun BasicScreen(
                 }
             }
         },
+        drawerContent = {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(15.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.drawer_text1),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = getVersionCode().toString(),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.drawer_text2),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.about_app),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.drawer_text3),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(text = stringResource(
+                    id = R.string.about_me),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.github_address),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.blog_address),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = stringResource(id = R.string.email),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }                
+        },
+        drawerGesturesEnabled = true,
         modifier = Modifier.systemBarsPadding()
     ) {
         NavGraph(
             navController = navController as NavHostController,
-            listState = listState
+            listState = listState,
+            coroutineScope = coroutineScope
         )
     }
 }
@@ -100,7 +170,11 @@ fun BasicScreen(
  * Change topBar according to different screens.
  */
 @Composable
-private fun CPTopBar(currentScreen: State<String>, onArrowBack: () -> Unit) {
+private fun CPTopBar(
+    currentScreen: State<String>,
+    onArrowBack: () -> Unit,
+    openDrawer: () -> Unit
+) {
     when (currentScreen.value) {
         Destinations.HOME_ROUTE -> TopAppBar(
             title = {
@@ -112,7 +186,7 @@ private fun CPTopBar(currentScreen: State<String>, onArrowBack: () -> Unit) {
                 )
             },
             navigationIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = openDrawer) {
                     Icon(
                         imageVector = Icons.Filled.More,
                         contentDescription = null

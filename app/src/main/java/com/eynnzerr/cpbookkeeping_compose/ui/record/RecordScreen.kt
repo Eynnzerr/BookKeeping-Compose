@@ -24,7 +24,7 @@ fun RecordScreen(
 ) {
     updateBills()
     Column {
-        Spacer(modifier = Modifier.padding(vertical = 20.dp))
+        // Spacer(modifier = Modifier.padding(vertical = 20.dp))
         BillListWithHeader(
             grouped = uiState.groupedBills,
             listState = listState,

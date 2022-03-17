@@ -11,6 +11,8 @@ import javax.inject.Inject
 class BillRepositoryImpl @Inject constructor() : BillRepository {
     private val billDao = BillDatabase.getInstance(context).getDao()
 
+    fun getBillsByKeyWord(keyword: String) = billDao
+
     fun getBillsByDate(date: String) = billDao.getBillsByDate(date)
 
     /**

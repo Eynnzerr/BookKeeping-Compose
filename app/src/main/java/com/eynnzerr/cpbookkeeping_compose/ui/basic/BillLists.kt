@@ -88,7 +88,7 @@ fun BillListWithHeader(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 5.dp, end = 5.dp),
+                        .padding(start = 5.dp, end = 5.dp, top = 20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
